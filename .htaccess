@@ -1,0 +1,35 @@
+RewriteEngine on
+
+RewriteRule ^/?$ index.php?menu=dashboard [NC,L]
+RewriteRule ^dashboard/?$ index.php?menu=dashboard [NC,L]
+
+
+
+
+
+
+# Rule for matching 'book' or 'book/'
+RewriteRule ^book/?$ index.php?menu=books [NC,L]
+
+# Rule for matching 'book/show/{book_id}'
+RewriteRule ^book/show/([A-Za-z0-9-]+)$ index.php?menu=books&action=show&book_id=$1 [NC,L]
+
+
+
+RewriteRule ^customer/?$ index.php?menu=customers [NC,L]
+RewriteRule ^transactions/?$ index.php?menu=transactions [NC,L]
+RewriteRule ^report/?$ index.php?menu=reports [NC,L]
+
+
+RewriteRule ^users/?$ index.php?menu=users [NC,L]
+RewriteRule ^categories/?$ index.php?menu=categories [NC,L]
+RewriteRule ^setting/?$ index.php?menu=settings [NC,L]
+
+
+RewriteRule ^print/qrcode/?$ print.php?print=qrcode [NC,L]
+RewriteRule ^print/barcode/([A-Za-z0-9-]+)?$ print.php?print=barcode&code=$1 [NC,L]
+
+RewriteRule ^logout/?$ signout.php [NC,L]
+RewriteRule ^login/?$ login.php [NC,L]
+
+
