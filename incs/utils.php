@@ -144,27 +144,38 @@ function load() {
         $menuPermissions = [
             'books' => [
             	'folder' => '_books',
-            	'default' => 'books'
+            	'default' => 'books',
+            	'name' => 'books'
             ],
             'users' => [
             	'folder' => 'hrm',
-            	'default' => 'users'
+            	'default' => 'users',
+            	'name' => 'users'
             ],
             'categories' => [
             	'folder' => '_books',
-            	'default' => 'categories'
+            	'default' => 'categories',
+            	'name' => 'categories'
             ],
             'customers' => [
             	'folder' => 'customers',
-            	'default' => 'customers'
+            	'default' => 'customers',
+            	'name' => 'customers'
             ],
             'transactions' => [
             	'folder' => 'customers',
-            	'default' => 'transactions'
+            	'default' => 'transactions',
+            	'name' => 'transactions'
             ], 
             'reports' => [
             	'folder' => 'reports',
-            	'default' => 'reports'
+            	'default' => 'reports',
+            	'name' => 'reports'
+            ],
+            'dashboard' => [
+            	// 'folder' => 'reports',
+            	'default' => 'dashboard',
+            	'name' => 'dashboard'
             ],
         ];
         
@@ -186,10 +197,14 @@ function load() {
         if (array_key_exists($menu, $menuPermissions) && $_SESSION[$menu] == 'on') {
             if ($menu == 'settings') {
                 require('settings.php');
+            } else if ($menu == 'dashboard') {
+                require('dashboard.php');
             } else {
                 $currentMenu = $menuPermissions[$menu];
-                if ($action && isset($actionFiles[$currentMenu][$action])) {
-                	// Deal with actions if ever there is one
+
+                $requireFile = $actionFiles[$currentMenu['name']];
+                if ($action && isset($actionFiles[$currentMenu['name']][$action])) {
+                	require($currentMenu['folder'].'/'.$requireFile[$action]);
                 } else {
                 	require($currentMenu['folder'].'/'.$currentMenu['default'].'.php');
                 }
@@ -302,7 +317,7 @@ function clean($clear) {
 // Get_details
 function get_categoryInfo($category_id, $column = '') {
 	$name = $parent_id = '';
-	$get_category = "SELECT * FROM `categories` WHERE `category_id` = '$category_id'";
+	$get_category = "SELECT * FROM `categories` WHERE `id` = '$category_id'";
 	if($column) $get_category = "SELECT * FROM `categories` WHERE `$column` = '$category_id'";
     $categorySet = $GLOBALS['conn']->query($get_category);
     while($row = $categorySet->fetch_assoc()) {
@@ -313,7 +328,7 @@ function get_categoryInfo($category_id, $column = '') {
 }
 
 function get_userInfo($user_id, $username = '') {
-	$name = $parent_id = '';
+	$name = '';
 	$result = [];
 	$get_user = "SELECT * FROM `users` WHERE `user_id` = '$user_id'";
 	if($username) $get_user = "SELECT * FROM `users` WHERE `username` = '$username'";
@@ -405,5 +420,20 @@ function getFirstLetter($string) {
     }
 
     return substr($string, 0, 1);
+}
+function formatDateTime($datetime, $includeTime = false) {
+    // Create a DateTime object from the input string
+    $date = new DateTime($datetime);
+
+    // Define the format for the date
+    $dateFormat = 'F j, Y'; // e.g., August 31, 2024
+
+    // Append the time format if $includeTime is true
+    if ($includeTime) {
+        $dateFormat .= ' g:i A'; // e.g., 7:11 AM
+    }
+
+    // Format the DateTime object and return the result
+    return $date->format($dateFormat);
 }
 ?>

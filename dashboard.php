@@ -11,14 +11,14 @@
             <div class="dash-card bg-black-700 rounded py-3">
                 <div class="white-50">
                     <div class="full-flex ">
-                        <h6 class="bold mfs-1">Documents</h6>
+                        <h6 class="bold mfs-1">Books</h6>
                     </div>
                     <div class="flex center-items space-bw">
                         <div class="">
                             <h5 class="mfs-2 bold">1,324</h5>
                         </div>
                         <div class="visit-change flex center-items">
-                            <span class="bi mfs-3 bi-files"></span>
+                            <span class="bi mfs-3 bi-book"></span>
                         </div>
                     </div>
                     <!--//content-->
@@ -27,7 +27,7 @@
             <div class="dash-card bg-red-700  feature-item rounded py-3">
                 <div class="white-50">
                     <div class="full-flex ">
-                        <h6 class="bold mfs-1">Tagged Documents</h6>
+                        <h6 class="bold mfs-1">Books on hold</h6>
                     </div>
                     <div class="flex center-items space-bw">
                         <div class="">
@@ -43,14 +43,14 @@
             <div class="dash-card bg-yellow-400  feature-item rounded py-3">
                 <div class="white-50">
                     <div class="full-flex ">
-                        <h6 class="bold mfs-1">Shelves</h6>
+                        <h6 class="bold mfs-1">Customers</h6>
                     </div>
                     <div class="flex center-items space-bw">
                         <div class="">
                             <h5 class="mfs-2 bold">0523</h5>
                         </div>
                         <div class="visit-change flex center-items">
-                            <span class="bi mfs-3 bi-bookshelf"></span>
+                            <span class="bi mfs-3 bi-people"></span>
                         </div>
                     </div>
                     <!--//content-->
