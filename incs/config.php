@@ -1,4 +1,4 @@
 <?php 
-	define("BASE_URI", "/projects/2024/library_ms");
+	define("BASE_URI", "https://library.hawlkar.com");
 	$GLOBALS['startYear'] = 1990;
  ?>
