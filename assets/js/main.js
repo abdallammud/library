@@ -305,14 +305,18 @@ function loginUser(form) {
 			console.log(privilegs)
 			if(privilegs.includes('dashboard')) {
 				location.href = './';
-			} else if(privilegs.includes('documents')) {
-				location.href = './document';
-			} else if(privilegs.includes('archive')) {
-				location.href = './archive';
+			} else if(privilegs.includes('books')) {
+				location.href = './book';
+			} else if(privilegs.includes('categories')) {
+				location.href = './categories';
 			} else if(privilegs.includes('users')) {
 				location.href = './users';
-			} else if(privilegs.includes('settings')) {
-				location.href = './setting';
+			} else if(privilegs.includes('customers')) {
+				location.href = './customer';
+			} else if(privilegs.includes('transactions')) {
+				location.href = './transactions';
+			} else if(privilegs.includes('reports')) {
+				location.href = './report';
 			}
 			
 			return false
@@ -499,7 +503,7 @@ function editCategory(form) {
 	return false;
 }
 
-// Articles
+// Book
 function submitBook(form) {
 	clearErrors();
 	$(form).find('button span.loader').removeClass('ld-ring ld-spin')
@@ -578,9 +582,6 @@ function submitBook(form) {
 	ajax.send(formdata);
 
 	return false;
-}
-function articles() {
-	
 }
 function loadBooks(categoryFilter, statusFilter) {
 	console.log(categoryFilter, statusFilter)  
@@ -785,7 +786,6 @@ function editBook(form) {
 	ajax.send(formdata);
 	return false;
 }
-
 function editBookStatus(form) {
 	let status = $(form).find('#slcBookStatus').val();
 	let book_id =  $(form).find('#book_id4StatusChange').val()
@@ -821,4 +821,204 @@ function editBookStatus(form) {
 	})
 
 	return false
+}
+function editBookCover(form) {
+	let book_id =  $(form).find('#book_id4CoverChange').val();
+	let coverImage 		= $(form).find('#coverImage').val();
+    let ext 			= coverImage.split('.').pop();
+    let file 			= $(form).find('#coverImage')[0].files[0]
+
+    var formdata = new FormData();
+	formdata.append("file", file);
+    formdata.append("book_id", book_id);
+
+    var ajax = new XMLHttpRequest();
+	ajax.addEventListener("load", function(event) {
+		console.log(event.target.response)
+		let res = JSON.parse(event.target.response)
+		if(res.error) {
+			swal('Ooops', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: res.msg,
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+            	// Reload to post show page which kind looks like the site version
+            	let id = res.id
+                location.reload();
+            })
+		}
+	});
+	
+	ajax.open("POST", `${baseURI}/incs/main.php?action=update&update=bookCover`);
+	ajax.send(formdata);
+
+	return false;
+}
+function deleteCoverFromBook(book_id) {
+    var formdata = new FormData();
+    formdata.append("book_id", book_id);
+    var ajax = new XMLHttpRequest();
+	ajax.addEventListener("load", function(event) {
+		console.log(event.target.response)
+		let res = JSON.parse(event.target.response)
+		if(res.error) {
+			swal('Ooops', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: "Book cover removed successfully.",
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+            	// Reload to post show page which kind looks like the site version
+            	let id = res.id
+                location.reload();
+            })
+		}
+	});
+	
+	ajax.open("POST", `${baseURI}/incs/main.php?action=update&update=bookCover`);
+	ajax.send(formdata);
+
+	return false;
+}
+
+// Customers
+function addCustomer(form) {
+	clearErrors();
+	const regex 	= /^[0-9]+-[0-9]+$/; 
+	let customerName = $(form).find('#customerName').val();
+	let phoneNumber = $(form).find('#phoneNumber').val();
+	let email 		= $(form).find('#email').val();
+
+	if(!customerName) {
+		showError('Customer name is required.', 'customerName');
+		return false;
+	}
+
+	if(!phoneNumber) {
+		showError('Customer phone number is required.', 'phoneNumber');
+		return false;
+	}
+
+	$.post("./incs/main.php?action=save&save=customer", {name:customerName, phone:phoneNumber, email:email}, function(data) {
+		console.log(data)
+		let res = JSON.parse(data)
+		if(res.error) {
+			swal('Sorry', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: res.msg,
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+                location.reload();
+            })
+		}
+	})
+	return false;
+}
+function loadCustomers() {
+	let datatable = new DataTable('#customersTable', {
+		"processing": true,
+		"serverSide": true,
+		"bDestroy": true,
+		// "paging": false,
+		"serverMethod": 'post',
+		"ajax": {
+			"url": "./incs/main.php?action=load&load=customers",
+			"method":"POST",
+			// dataFilter: function(data) {
+			// 	console.log(data)
+			// }
+		}, 
+		columns: [
+			{title: "Name", data: null, render: function(data, type, row) {
+	            return `<div class="flex center-items">
+	            		<span onclick="return editCategoryPopup(this, '${row.id}')" class="bi bi-pencil mr-r-10 cursor hover"
+	            		></span>
+		            	<span>${row.name}</span>
+		            </div>`;
+	        }},
+
+	        {title: "Phone", data: null, render: function(data, type, row) {
+	            return `<div>${row.phone_number}</div>`;
+	        }},
+
+	        {title: "Email", data: null, render: function(data, type, row) {
+	            return `<div>${row.email}</div>`;
+	        }},
+
+	       	{title: "Status", data: null, render: function(data, type, row) {
+	            return `<div>${row.membership_status}</div>`;
+	        }},
+
+	        {title: "Date Joined", data: null, render: function(data, type, row) {
+	            return `<div>${row.created_at}</div>`;
+	        }},
+
+		]
+	})
+	return false;	
+}
+async function editCustomerPopup(btn, category_id) {
+	let modal = $('#editCategory');
+	$(modal).find('#category_id4Edit').val('')
+	$(modal).find('#desc4Edit').val('')
+	$(modal).find('#categoryName4Edit').val('')
+	$(modal).find(`#slcCategoryStatus option[value="Darft"]`).attr('selected', 'selected');
+
+	await $.post("./incs/main.php?action=get&get=category", {category_id:category_id}, function(data) {
+		let res = JSON.parse(data)[0]
+		
+		$(modal).find('#category_id4Edit').val(res.id)
+		$(modal).find('#categoryName4Edit').val(res.name)
+		$(modal).find('#desc4Edit').val(res.description)
+
+		$(modal).find(`#slcCategoryStatus option[value="${res.status}"]`).attr('selected', 'selected');
+		
+	});
+
+	$(modal).modal('show');
+}
+function editCustomer(form) {
+	let desc 				= $(form).find('#desc4Edit').val();
+	let categoryName 		= $(form).find('#categoryName4Edit').val();
+	let category_id			= $(form).find('#category_id4Edit').val();
+	let slcCategoryStatus	= $(form).find('#slcCategoryStatus').val();
+
+	if(!categoryName) {
+		showError('Category name is required.', 'categoryName4Edit');
+		return false;
+	}
+
+	$.post("./incs/main.php?action=update&update=category", {desc:desc, categoryName:categoryName, category_id:category_id, slcCategoryStatus:slcCategoryStatus}, function(data) {
+		console.log(data)
+		let res = JSON.parse(data)
+		if(res.error) {
+			swal('Sorry', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: res.msg,
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+                location.reload();
+            })
+		}
+	})
+	return false;
 }

@@ -59,7 +59,7 @@ if(isset($_GET['action'])) {
 	    $result['msg'] = "Succefully logged in.";
 	    $result['error'] = false;
 	    $result['actions'] = $user_actions;
-	    $result['privilegs'] = $user_privileges;
+	    $result['privilegs'] = strtolower($user_privileges);
 	    echo json_encode($result); exit(); 
 
 	}
@@ -181,8 +181,8 @@ function load() {
         
         $actionFiles = [
             'books' => [
-                'show' => 'show_book.php',
-                'update' => 'update_book.php',
+                'show' => 'book_show.php',
+                'update' => 'book_update.php',
                 'create' => 'book_add.php',
             ],
             'users' => [
@@ -190,7 +190,17 @@ function load() {
             ],
             'categories' => [
                 'update' => 'update_category.php',
-            ]
+            ],
+            'customers' => [
+                'show' => 'customer_show.php',
+                'update' => 'customer_update.php',
+                'create' => 'customer_add.php',
+            ],
+            'transactions' => [
+                'show' => 'trans_show.php',
+                'update' => 'trans_update.php',
+                'create' => 'trans_add.php',
+            ],
         ];
         
         // Check if the menu exists and the session permission is set
@@ -436,4 +446,167 @@ function formatDateTime($datetime, $includeTime = false) {
     // Format the DateTime object and return the result
     return $date->format($dateFormat);
 }
+
+
+function checkAccess($entity, $action, $message) {
+    // Ensure session is started
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Get user role and permissions from session
+    $role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
+    $isLogged = isset($_SESSION['isLogged']) ? $_SESSION['isLogged'] : false;
+
+    // Check if user is logged in
+    if (!$isLogged) {
+        $result = [
+            'msg' => 'User is not logged in.',
+            'error' => true
+        ];
+        echo json_encode($result);
+        exit();
+    }
+
+    // Admins have access to all actions
+    if ($role === 'admin') {
+        return true;
+    }
+
+    // Check if entity and action permissions are allowed
+    $entityPermission = isset($_SESSION[$entity]) ? $_SESSION[$entity] : 'off';
+    $actionPermission = isset($_SESSION[$action]) ? $_SESSION[$action] : 'off';
+
+    // Determine if the user has the right to perform the action on the entity
+    if ($entityPermission === 'off' || $actionPermission === 'off') {
+        $result = [
+            'msg' => $message,
+            'error' => true
+        ];
+        echo json_encode($result);
+        exit();
+    }
+
+    // Access granted
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Ensure the global $conn variable is defined and connected
+// ALTER TABLE `customers` DROP INDEX `email`;
+function insertSampleCustomers() {
+    $conn = $GLOBALS['conn'];
+
+    // Check if sample data has already been inserted
+    $result = $conn->query("SELECT COUNT(*) FROM customers WHERE name LIKE 'Sample%'");
+    if ($result) {
+        $count = $result->fetch_row()[0];
+        if ($count > 0) {
+            // Sample data already exists
+            return;
+        }
+    } else {
+        die("Error checking data existence: " . $conn->error);
+    }
+
+    // Sample data to insert
+    $customers = [
+        ['Alice Johnson', 'alice.johnson@example.com', '555-0101', 'active', 'admin', 'admin'],
+        ['Bob Smith', 'bob.smith@example.com', '555-0102', 'inactive', 'admin', 'admin'],
+        ['Carol Davis', 'carol.davis@example.com', '555-0103', 'active', 'admin', 'admin'],
+        ['David Brown', 'david.brown@example.com', '555-0104', 'active', 'admin', 'admin'],
+        ['Eva Wilson', 'eva.wilson@example.com', '555-0105', 'inactive', 'admin', 'admin'],
+        ['Frank Moore', 'frank.moore@example.com', '555-0106', 'active', 'admin', 'admin'],
+        ['Grace Taylor', 'grace.taylor@example.com', '555-0107', 'inactive', 'admin', 'admin'],
+        ['Hank Anderson', 'hank.anderson@example.com', '555-0108', 'active', 'admin', 'admin'],
+        ['Ivy Thomas', 'ivy.thomas@example.com', '555-0109', 'inactive', 'admin', 'admin'],
+        ['Jack Martinez', 'jack.martinez@example.com', '555-0110', 'active', 'admin', 'admin'],
+        ['Karen White', 'karen.white@example.com', '555-0111', 'inactive', 'admin', 'admin'],
+        ['Leo Harris', 'leo.harris@example.com', '555-0112', 'active', 'admin', 'admin'],
+        ['Mia Clark', 'mia.clark@example.com', '555-0113', 'inactive', 'admin', 'admin'],
+        ['Nate Lewis', 'nate.lewis@example.com', '555-0114', 'active', 'admin', 'admin'],
+        ['Olivia Walker', 'olivia.walker@example.com', '555-0115', 'inactive', 'admin', 'admin'],
+        ['Paul Hall', 'paul.hall@example.com', '555-0116', 'active', 'admin', 'admin'],
+        ['Quinn Allen', 'quinn.allen@example.com', '555-0117', 'inactive', 'admin', 'admin'],
+        ['Rita King', 'rita.king@example.com', '555-0118', 'active', 'admin', 'admin'],
+        ['Sam Scott', 'sam.scott@example.com', '555-0119', 'inactive', 'admin', 'admin'],
+        ['Tina Adams', 'tina.adams@example.com', '555-0120', 'active', 'admin', 'admin'],
+        ['Ulysses Baker', 'ulysses.baker@example.com', '555-0121', 'inactive', 'admin', 'admin'],
+        ['Vera Nelson', 'vera.nelson@example.com', '555-0122', 'active', 'admin', 'admin'],
+        ['Will Carter', 'will.carter@example.com', '555-0123', 'inactive', 'admin', 'admin'],
+        ['Xena Mitchell', 'xena.mitchell@example.com', '555-0124', 'active', 'admin', 'admin'],
+        ['Yves Roberts', 'yves.roberts@example.com', '555-0125', 'inactive', 'admin', 'admin'],
+        ['Zara Lopez', 'zara.lopez@example.com', '555-0126', 'active', 'admin', 'admin'],
+        ['Anna Young', 'anna.young@example.com', '555-0127', 'inactive', 'admin', 'admin'],
+        ['Ben Martin', 'ben.martin@example.com', '555-0128', 'active', 'admin', 'admin'],
+        ['Cathy Lewis', 'cathy.lewis@example.com', '555-0129', 'inactive', 'admin', 'admin'],
+        ['Derek Walker', 'derek.walker@example.com', '555-0130', 'active', 'admin', 'admin'],
+        ['Ella Turner', 'ella.turner@example.com', '555-0131', 'inactive', 'admin', 'admin'],
+        ['Fred Harris', 'fred.harris@example.com', '555-0132', 'active', 'admin', 'admin'],
+        ['Gina Hill', 'gina.hill@example.com', '555-0133', 'inactive', 'admin', 'admin'],
+        ['Holly Mitchell', 'holly.mitchell@example.com', '555-0134', 'active', 'admin', 'admin'],
+        ['Ian Lewis', 'ian.lewis@example.com', '555-0135', 'inactive', 'admin', 'admin'],
+        ['Judy Adams', 'judy.adams@example.com', '555-0136', 'active', 'admin', 'admin'],
+        ['Kyle Allen', 'kyle.allen@example.com', '555-0137', 'inactive', 'admin', 'admin'],
+        ['Laura White', 'laura.white@example.com', '555-0138', 'active', 'admin', 'admin'],
+        ['Mike Scott', 'mike.scott@example.com', '555-0139', 'inactive', 'admin', 'admin'],
+        ['Nina Roberts', 'nina.roberts@example.com', '555-0140', 'active', 'admin', 'admin'],
+        ['Oscar Martinez', 'oscar.martinez@example.com', '555-0141', 'inactive', 'admin', 'admin'],
+        ['Paula Davis', 'paula.davis@example.com', '555-0142', 'active', 'admin', 'admin'],
+        ['Quincy Taylor', 'quincy.taylor@example.com', '555-0143', 'inactive', 'admin', 'admin'],
+        ['Randy King', 'randy.king@example.com', '555-0144', 'active', 'admin', 'admin'],
+        ['Sandra Walker', 'sandra.walker@example.com', '555-0145', 'inactive', 'admin', 'admin'],
+        ['Tony Clark', 'tony.clark@example.com', '555-0146', 'active', 'admin', 'admin'],
+        ['Ursula Young', 'ursula.young@example.com', '555-0147', 'inactive', 'admin', 'admin'],
+        ['Victor Robinson', 'victor.robinson@example.com', '555-0148', 'active', 'admin', 'admin'],
+        ['Wendy Martinez', 'wendy.martinez@example.com', '555-0149', 'inactive', 'admin', 'admin'],
+        ['Xander Brown', 'xander.brown@example.com', '555-0150', 'active', 'admin', 'admin'],
+    ];
+
+    // Prepare the SQL statement
+    $sql = "INSERT INTO customers (name, email, phone_number, membership_status, added_by, added_date, updated_by, updated_date) 
+            VALUES (?, ?, ?, ?, ?, NOW(), ?, NOW())";
+    $stmt = $conn->prepare($sql);
+
+    if (!$stmt) {
+        die("Error preparing statement: " . $conn->error);
+    }
+
+    // Insert each customer
+    foreach ($customers as $customer) {
+        $stmt->bind_param('ssssss', $customer[0], $customer[1], $customer[2], $customer[3], $customer[4], $customer[5]);
+        if (!$stmt->execute()) {
+            echo "Error inserting customer: " . $stmt->error . "<br>";
+        }
+    }
+
+    $stmt->close();
+}
+
+// Call the function to insert sample customers
+// insertSampleCustomers();
+
 ?>

@@ -55,13 +55,6 @@ if(isset($_GET['menu'])) $active = $_GET['menu'];
                 <span>Users</span>
             </a>
         </li>
-        <?php } if($_SESSION['settings'] == 'on') { ?>
-        <li>
-            <a href="<?=BASE_URI;?>/setting" class=" <?php if($active == 'settings') echo 'active'; ?>">
-                <i class="bi bi-gear"></i>
-                <span>Settings</span>
-            </a>
-        </li>
         <?php }  ?>
 
         <!-- <li>

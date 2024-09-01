@@ -37,17 +37,7 @@ if(isset($_GET['action'])) {
 				$actions 	= rtrim(implode(",", $userActions), ',');
 				$privileges = rtrim(implode(",", $userPrivileges), ',');
 
-				if(strtolower($role) != 'admin') {
-					$result['msg'] = 'Can\'t add system user.';
-					$result['error'] = true;
-					echo json_encode($result);
-					exit();
-				} else if($_SESSION['create'] != 'on') {
-					$result['msg'] = 'Can\'t add system user.';
-					$result['error'] = true;
-					echo json_encode($result);
-					exit();
-				}
+				checkAccess('users', 'create', 'Can\'t create a user. No privileges');
 
 				// Check if username already exist
 		        $checkUser = "SELECT `username` FROM `users` WHERE `username` = '$username' AND `status` <> 'deleted'";
@@ -81,11 +71,7 @@ if(isset($_GET['action'])) {
 				if(isset($_POST['desc'])) $desc = $_POST['desc'];
 				$categoryName = $_POST['categoryName'];
 
-				if(strtolower($role) != 'admin') {
-					$result['msg'] = 'Can\'t add category.';
-					echo json_encode($result);
-					exit();
-				}
+				checkAccess('categories', 'create', 'Can\'t create a category. No privileges');
 
 				// Check if username already exist
 		        $check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted'";
@@ -122,6 +108,8 @@ if(isset($_GET['action'])) {
 				$publisher 		= $_POST['publisher'];
 				$published_year = $_POST['published_year'];
 				$slcBookCategory = $_POST['slcBookCategory'];
+
+				checkAccess('books', 'create', 'Can\'t create a book. No privileges');
 
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted'");
 				if($check_exist->num_rows > 0) {
@@ -219,7 +207,43 @@ if(isset($_GET['action'])) {
             		echo json_encode($result);
 					exit();
                 }
-			}  
+			} else if($_GET['save'] == 'customer') {
+				$result['msg'] = 'Correct action';
+				$result['status'] = 201;
+
+				$email = '';
+
+				if(isset($_POST['email'])) $email = $_POST['email'];
+				$name = $_POST['name'];
+				$phone = $_POST['phone'];
+
+				checkAccess('customers', 'create', 'Can\'t create a customer. No privileges');
+
+				// Check if username already exist
+		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `phone_number` = '$phone' AND `membership_status` <> 'deleted'";
+		        $existSet = $GLOBALS['conn']->query($check_exist);
+		        if($existSet->num_rows > 0) {
+		            $result['msg'] = ' This customer already exists.';
+		            $result['error'] = true;
+		            $result['errType'] = 'customer';
+		            echo json_encode($result); 
+		            exit();
+		        }
+
+		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `customers` (`name`, `phone_number`, `email`, `added_by`) VALUES (?, ?, ?, ?)");
+		        $stmt->bind_param("ssss", $name, $phone, $email, $myUser);
+		        if(!$stmt->execute()) {
+		            $result['msg']    = ' Couln\'t record customer.';
+		            $result['error'] = true;
+		            $result['errType']  = 'sql';
+		            $result['sqlErr']   = $stmt->error;
+		            echo json_encode($result); exit();
+		        } else {
+		        	$result['msg'] = ' Customer saved succefully.';
+		            $result['error'] = false;
+		            $result['id'] = $stmt->insert_id;
+		        }
+			} 
 		} else {
 			$result['msg'] = 'Incorrect action';
 		}
@@ -429,6 +453,60 @@ if(isset($_GET['action'])) {
 					$result['iTotalRecords'] = 0;
 					$result['iTotalDisplayRecords'] = 0;
 				}
+			} else if($_GET['load'] == 'customers') {
+				$result['status'] = 201;
+				$result['error'] = false;
+				// var_dump($_POST);
+				if(isset($_POST['order'])) {
+					if($orderBy == '0') $orderBy = 'name';
+					if($orderBy == '1') $orderBy = 'phone_number';
+					if($orderBy == '2') $orderBy = 'email';
+					if($orderBy == '3') $orderBy = 'membership_status';
+					if($orderBy == '4') $orderBy = 'added_date';
+				}
+				$get_customers = "SELECT * FROM `customers` WHERE `membership_status` != 'deleted' ";
+				// ORDER BY `added_date` DESC
+				if($searchParam) {
+					$get_customers .= " AND (`name` LIKE '%$searchParam%' OR `phone_number` LIKE '%$searchParam%' OR `email` LIKE '%$searchParam%')";
+				}
+
+				if($orderBy) {
+					$get_customers .= " ORDER BY `$orderBy` $order";
+				}
+				$noLimit = $get_customers;
+				$get_customers .= " LIMIT $start, ".$length;
+				$customers = $GLOBALS['conn']->query($get_customers);
+				$allcustomers = $GLOBALS['conn']->query($noLimit);
+				if($customers->num_rows > 0) {
+					$result['foundRows'] = $customers->num_rows;
+					$result['error'] = false;
+
+					while($row = $customers->fetch_assoc()) {
+						// $dataset[] = $row;
+						$id = $row['id'];
+						$name = $row['name'];
+						$email = $row['email'];
+						$phone_number = $row['phone_number'];
+						
+						$membership_status 	= $row['membership_status'];
+						$added_date = new dateTime($row['added_date']);
+						$added_date = $added_date->format('F d Y');
+
+						$dataset[] = array('name' => $name, 'id' => $id, 'email' => $email, 'phone_number' => $phone_number, 'created_at' => $added_date, 'membership_status' => ucwords($membership_status));
+					}
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = $allcustomers->num_rows;
+					$result['iTotalDisplayRecords'] = $allcustomers->num_rows;
+				} else {
+					// $result['error'] = true;
+					$result['msg'] = "No records found";
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = 0;
+					$result['iTotalDisplayRecords'] = 0;
+				
+				}
 			}
 		} else {
 			$result['msg'] = 'Incorrect action';
@@ -457,21 +535,10 @@ if(isset($_GET['action'])) {
 				$actions 	= rtrim(implode(",", $userActions), ',');
 				$privileges = rtrim(implode(",", $userPrivileges), ',');
 
-				if(strtolower($role) != 'admin') {
-					$result['msg'] = 'Can\'t edit system user.';
-					$result['error'] = true;
-					echo json_encode($result);
-					exit();
-				} else if($_SESSION['update'] != 'on') {
-					$result['msg'] = 'Can\'t edit system user.';
-					$result['error'] = true;
-					echo json_encode($result);
-					exit();
-				} else if($_SESSION['delete'] != 'on' && strtolower($slcStatus) == 'deleted') {
-					$result['msg'] = 'Can\'t deleted system user.';
-					$result['error'] = true;
-					echo json_encode($result);
-					exit();
+				checkAccess('users', 'update', 'Can\'t update a user. No privileges');
+
+				if(strtolower($slcStatus) == 'deleted') {
+					checkAccess('users', 'delete', 'Can\'t delete a user. No privileges');
 				}
 
 				$updated_date = date('Y-m-d h:i:s');
@@ -498,10 +565,10 @@ if(isset($_GET['action'])) {
 				$category_id = $_POST['category_id'];
 				$slcCategoryStatus = $_POST['slcCategoryStatus'];
 
-				if(strtolower($role) != 'admin') {
-					$result['msg'] = 'Can\'t update category.';
-					echo json_encode($result);
-					exit();
+				checkAccess('categories', 'update', 'Can\'t update a category. No privileges');
+
+				if(strtolower($slcCategoryStatus) == 'deleted') {
+					checkAccess('categories', 'delete', 'Can\'t delete a category. No privileges');
 				}
 
 				// Check if username already exist
@@ -542,6 +609,12 @@ if(isset($_GET['action'])) {
 				$slcBookCategory = $_POST['slcBookCategory'];
 				$slcBookStatus 	= $_POST['slcBookStatus'];
 
+				checkAccess('books', 'update', 'Can\'t update a book. No privileges');
+
+				if(strtolower($slcBookStatus) == 'deleted') {
+					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+				}
+
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `book_id` <> '$book_id'");
 				if($check_exist->num_rows > 0) {
 					$result['error'] = true;
@@ -570,6 +643,12 @@ if(isset($_GET['action'])) {
 				$status = $_POST['status'];
 				$book_id = $_POST['book_id'];
 
+				checkAccess('books', 'update', 'Can\'t change a book status. No privileges');
+
+				if(strtolower($status) == 'deleted') {
+					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+				}
+
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `status` =?, `updated_date` =?, `updated_by` =? WHERE `book_id` = ?");
 		        $stmt->bind_param("ssss", $status, $updated_date,  $myUser, $book_id);
 		        if(!$stmt->execute()) {
@@ -580,6 +659,90 @@ if(isset($_GET['action'])) {
 		            echo json_encode($result); exit();
 		        } else {
 		        	$result['msg'] = ' Book status changed succefully.';
+		            $result['error'] = false;
+		            $result['id'] = $stmt->insert_id;
+		        }
+			} else if($_GET['update'] == 'bookCover') {
+				$result['msg'] = 'Correct action';
+				$result['status'] = 201;
+
+				checkAccess('books', 'update', 'Can\'t change a book cover. No privileges');
+				
+				
+
+				$image = '';
+				$uploadOk = false;
+				$book_id = $_POST['book_id'];
+
+				if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+					// Get file information
+				    $target_dir = "../assets/images/books/";
+				    $file_name = basename($_FILES["file"]["name"]);
+
+				    $temp = explode(".", $_FILES["file"]["name"]);
+			    	$newfilename = round(microtime(true)) . '.' . end($temp);
+
+				    $target_file = $target_dir . $newfilename;
+				    $uploadOk = true;
+
+				    // Check if image file is a actual image or fake image
+			        $check = getimagesize($_FILES["file"]["tmp_name"]);
+			        if ($check == false) {
+			            $result['error'] = true;
+			            $result['msg'] = 'File is not an image.';
+			            $uploadOk = false;
+			            echo json_encode($result);
+						exit();
+			        }
+
+				    // Check file size (optional)
+				    if ($_FILES["file"]["size"] > 5000000) {
+				        $uploadOk = false;
+				        $result['error'] = true;
+			            $result['msg'] = "Sorry, your file is too large.";
+			            echo json_encode($result);
+						exit();
+				    }
+
+				    // Allow certain file formats
+				    $allowed_extensions = array("jpg", "jpeg", "png", "gif", "webp");
+				    $file_extension = pathinfo($target_file, PATHINFO_EXTENSION);
+				    if (!in_array($file_extension, $allowed_extensions)) {
+				        $uploadOk = false;
+				        $result['error'] = true;
+			            $result['msg'] = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+			            echo json_encode($result);
+						exit();
+				    }
+
+				    if($uploadOk) {
+				    	$image = $newfilename;
+				    	if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
+			            	$result['error'] = true;
+		            		$result['msg'] = "Sorry, there was an error uploading your file.";
+		            		echo json_encode($result);
+							exit();
+			            }
+				    } else {
+				        $result['error'] = true;
+	            		$result['msg'] = "Sorry, your file was not uploaded. Book cover not changed";
+	            		echo json_encode($result);
+	            		exit();
+				    }
+				} else {
+					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+				}
+
+		        $stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `cover_image` =?, `updated_date` =?, `updated_by` =? WHERE `book_id` = ?");
+		        $stmt->bind_param("ssss", $image, $updated_date,  $myUser, $book_id);
+		        if(!$stmt->execute()) {
+		            $result['msg']    = ' Couln\'t update book cover.';
+		            $result['error'] = true;
+		            $result['errType']  = 'sql';
+		            $result['sqlErr']   = $stmt->error;
+		            echo json_encode($result); exit();
+		        } else {
+		        	$result['msg'] = ' Book cover changed succefully.';
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }

@@ -19,9 +19,13 @@
        
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/dist/datatable/datatables.js"></script>
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/dist/jquery-ui/jquery-ui.js"></script>
+        <script type="text/javascript">
+            var baseURI = '<?=BASE_URI;?>';
+        </script>
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/js/sumoselect.js"></script>
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/js/theme.js"></script>
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/js/utils.js"></script>
         <script type="text/javascript" src="<?=BASE_URI;?>/assets/js/main.js"></script>
+
     </body>
 </html>

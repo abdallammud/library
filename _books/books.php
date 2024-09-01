@@ -3,8 +3,9 @@
 	<p class="data-table-heading center-items flex space-bw mr-b-20 mr-t-10 mfs-8 bold">
 		<span>ALL BOOKS</span>
 		<!-- <a href="./articles/create"  class="mbtn cursor primary">Add Book</a> -->
-
-		<button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary">Add Book</button>
+		<?php if($_SESSION['create'] == 'on') { ?>
+			<button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary">Add Book</button>
+		<?php } ?>
 	</p>
 	<div class="row justify-end">
 		<div class="col-lg-3">
