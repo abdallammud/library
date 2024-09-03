@@ -243,7 +243,42 @@ if(isset($_GET['action'])) {
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
-			} 
+			} else if($_GET['save'] == 'borrow') {
+				$result['msg'] = 'Correct action';
+				$result['status'] = 201;
+
+				$customer_id 	= $_POST['customer_id'];
+				$isbn 			= $_POST['isbn'];
+				$borrow_date 	= date('Y-m-d H:i:s');
+				$dueDate 		= $_POST['dueDate'] . date(" H:i:s");
+
+				checkAccess('transactions', 'create', 'Can\'t give a book to a customer. No privileges');
+
+				// Check if username already exist
+		        $check_exist = "SELECT * FROM `borrowing` WHERE `customer_id` = '$customer_id' AND `book_isbn` = '$isbn' AND `status` = 'on hold'";
+		        $existSet = $GLOBALS['conn']->query($check_exist);
+		        if($existSet->num_rows > 0) {
+		            $result['msg'] = ' This customer already has this book.';
+		            $result['error'] = true;
+		            $result['errType'] = 'borrowing';
+		            echo json_encode($result); 
+		            exit();
+		        }
+
+		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `borrowing` (`customer_id`, `book_isbn`, `borrow_date`, `due_date`, `added_by`) VALUES (?, ?, ?, ?, ?)");
+		        $stmt->bind_param("sssss", $customer_id, $isbn, $borrow_date, $dueDate, $myUser);
+		        if(!$stmt->execute()) {
+		            $result['msg']    = ' Couln\'t record transaction.';
+		            $result['error'] = true;
+		            $result['errType']  = 'sql';
+		            $result['sqlErr']   = $stmt->error;
+		            echo json_encode($result); exit();
+		        } else {
+		        	$result['msg'] = ' Transaction saved succefully.';
+		            $result['error'] = false;
+		            $result['id'] = $stmt->insert_id;
+		        }
+			}
 		} else {
 			$result['msg'] = 'Incorrect action';
 		}
@@ -507,6 +542,73 @@ if(isset($_GET['action'])) {
 					$result['iTotalDisplayRecords'] = 0;
 				
 				}
+			} else if($_GET['load'] == 'transactions') {
+				$result['status'] = 201;
+				$result['error'] = false;
+
+				if(isset($_POST['order'])) {
+					if($orderBy == '0') $orderBy = 'name';
+					if($orderBy == '1') $orderBy = 'book_isbn';
+					if($orderBy == '2') $orderBy = 'borrow_date';
+					if($orderBy == '3') $orderBy = 'status';
+					if($orderBy == '4') $orderBy = 'due_date';
+				}
+				$get_transactions = "SELECT `name`, `phone_number`, `title`, `author`, `isbn`, BR.`id`, `borrow_date`, BR.`status`, `due_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted') ";
+				// ORDER BY `reg_date` DESC
+				if($searchParam) {
+					$get_transactions .= " AND (`name` LIKE '%$searchParam%' OR `phone_number` LIKE '%$searchParam%' OR `title` LIKE '%$searchParam%' OR `author` LIKE '%$searchParam%' OR `isbn` LIKE '%$searchParam%')";
+				} 
+				
+				if($orderBy) {
+					if($orderBy == 'name') {
+						$get_transactions .= " ORDER BY `name` $order";
+					} else {
+						$get_transactions .= " ORDER BY BR.`$orderBy` $order";
+					}
+				} else {
+					$get_transactions .= " ORDER BY BR.`id` DESC";
+				}
+
+				$noLimit = $get_transactions;
+				$get_transactions .= " LIMIT $start, ".$length;
+				$allTransactions = $GLOBALS['conn']->query($noLimit);
+				$transactions = $GLOBALS['conn']->query($get_transactions);
+				if($transactions->num_rows > 0) {
+					$result['error'] = false;
+
+					while($row = $transactions->fetch_assoc()) {
+						$id 		= $row['id'];
+						$title 		= $row['title'];
+						$isbn 		= $row['isbn'];
+						$author 	= $row['author'];
+						$customer 		= $row['name'];
+						$phone_number 	= $row['phone_number'];
+						$borrow_date 	= new dateTime($row['borrow_date']);
+						$due_date 		= new dateTime($row['due_date']);
+						$status 		= $row['status'];
+						$added_date 	= new dateTime($row['added_date']);
+
+						$statusTxt = ucwords($status);
+
+						$added_date = $added_date->format('F d, Y');
+						$borrow_date = $borrow_date->format('F d, Y');
+						$due_date = $due_date->format('F d, Y');
+						
+						$dataset[] = array('id' => $id, 'title' => $title, 'isbn' => $isbn, 'customer' => $customer, 'phone_number' => $phone_number, 'author' => $author, 'status' => $status, 'statusTxt' => $statusTxt, 'borrow_date' => $borrow_date, 'due_date' => $due_date, 'created_at' => $added_date);
+					}
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = $allTransactions->num_rows;
+					$result['iTotalDisplayRecords'] = $allTransactions->num_rows;
+
+				} else {
+					// $result['error'] = true;
+					$result['msg'] = "No records found";
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = 0;
+					$result['iTotalDisplayRecords'] = 0;
+				}
 			}
 		} else {
 			$result['msg'] = 'Incorrect action';
@@ -746,6 +848,46 @@ if(isset($_GET['action'])) {
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
+			} else if($_GET['update'] == 'customer') {
+				$result['msg'] = 'Correct action';
+				$result['status'] = 201;
+
+				$name 	= $_POST['name'];
+				$phone 	= $_POST['phone'];
+				$email 	= $_POST['email'];
+				$id 	= $_POST['id'];
+				$status = $_POST['status'];
+
+				checkAccess('customers', 'update', 'Can\'t update a customer. No privileges');
+
+				if(strtolower($status) == 'deleted') {
+					checkAccess('customers', 'delete', 'Can\'t delete a customer. No privileges');
+				}
+
+				// Check if username already exist
+		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `membership_status` <> 'deleted' AND `id` NOT IN ($id)";
+		        $existSet = $GLOBALS['conn']->query($check_exist);
+		        if($existSet->num_rows > 0) {
+		            $result['msg'] = ' This customer already exists.';
+		            $result['error'] = true;
+		            $result['errType'] = 'customer';
+		            echo json_encode($result); 
+		            exit();
+		        }
+
+		        $stmt = $GLOBALS['conn']->prepare("UPDATE `customers` SET `name` =?, `phone_number` =?, `email` =?, `membership_status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
+		        $stmt->bind_param("sssssss", $name, $phone, $email, $status, $updated_date, $myUser, $id);
+		        if(!$stmt->execute()) {
+		            $result['msg']    = ' Couln\'t update customer.';
+		            $result['error'] = true;
+		            $result['errType']  = 'sql';
+		            $result['sqlErr']   = $stmt->error;
+		            echo json_encode($result); exit();
+		        } else {
+		        	$result['msg'] = ' Customer editted succefully.';
+		            $result['error'] = false;
+		            $result['id'] = $stmt->insert_id;
+		        }
 			} else {
 				$result['msg'] = 'Incorrect action';
 			}
@@ -772,6 +914,75 @@ if(isset($_GET['action'])) {
 		    	$result[] = $row;
 		    }
 		    echo json_encode($result);
+		} else if($_GET['get'] == 'customer') {
+			$id = $_POST['id'];
+			$result = [];
+			$get_customer = "SELECT * FROM `customers` WHERE `id` = '$id'";
+		    $customerSet = $GLOBALS['conn']->query($get_customer);
+		    while($row = $customerSet->fetch_assoc()) {
+		    	$result[] = $row;
+		    }
+		    echo json_encode($result);
+		}
+	} else if($_GET['action'] == 'search') {
+		if($_GET['search'] == 'customer') {
+			$search = $_POST['search'];
+			$result = '';
+			$get_customer = "SELECT * FROM `customers` WHERE `membership_status` <> 'deleted' AND (`name` LIKE '%$search%' OR `phone_number` LIKE '%$search%' OR `email` LIKE '%$search%') LIMIT 10";
+		    $customerSet = $GLOBALS['conn']->query($get_customer);
+		    if($customerSet->num_rows > 0) {
+			    while($row = $customerSet->fetch_assoc()) {
+			    	$id 			= $row['id'];
+			    	$phone_number 	= $row['phone_number'];
+			    	$name 			= $row['name'];
+			    	$email 			= $row['email'];
+
+			    	$result .= '<div onclick="return catchCustomer(\'' . $id . '\', \'' . $name . '\', \'' . $phone_number . '\');" class="result-item">
+	            		<p class="">
+	            			<span class="title bold">Name:</span>
+	            			<span class="val">'.$name.'</span>
+	            		</p>
+	            		<p class="">
+	            			<span class="title bold">Phone:</span>
+	            			<span class="val">'.$phone_number.'</span>
+	            		</p>
+	            	</div>';
+			    }
+			} else {
+				$result = '<p class="empty-result">No customers found</p>';
+			}
+		    echo $result;
+		} else if($_GET['search'] == 'book') {
+			$search = $_POST['search'];
+			$result = '';
+			$get_book = "SELECT * FROM `books` WHERE `status` <> 'deleted' AND (`title` LIKE '%$search%' OR `author` LIKE '%$search%' OR `isbn` LIKE '%$search%') LIMIT 10";
+		    $bookSet = $GLOBALS['conn']->query($get_book);
+		    if($bookSet->num_rows > 0) {
+			    while($row = $bookSet->fetch_assoc()) {
+			    	$id 		= $row['book_id'];
+			    	$title 		= $row['title'];
+			    	$isbn 		= $row['isbn'];
+			    	$author 	= $row['author'];
+
+			    	$result .= '<div onclick="return catchBook(\'' . $id . '\', \'' . $isbn . '\', \'' . $title . '\', \'' . $author . '\');" class="result-item">
+	            		<p class="">
+	            			<span class="title bold">ISBN:</span>
+	            			<span class="val">'.$isbn.'</span>
+	            		</p>
+	            		<p class="">
+	            			<span class="title bold">Title:</span>
+	            			<span class="val">'.$title.'</span>
+	            		</p>
+	            		<p class="">
+	            			<span class="title bold">Author:</span>
+	            			<span class="val">'.$author.'</span>
+	            		</p>
+	            	</div>';
+			    }
+			} else {
+				$result = '<p class="empty-result">No customers found</p>';
+			}
+		    echo $result;
 		}
 	}
 }

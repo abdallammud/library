@@ -945,7 +945,7 @@ function loadCustomers() {
 		columns: [
 			{title: "Name", data: null, render: function(data, type, row) {
 	            return `<div class="flex center-items">
-	            		<span onclick="return editCategoryPopup(this, '${row.id}')" class="bi bi-pencil mr-r-10 cursor hover"
+	            		<span onclick="return editCustomerPopup(this, '${row.id}')" class="bi bi-pencil mr-r-10 cursor hover"
 	            		></span>
 		            	<span>${row.name}</span>
 		            </div>`;
@@ -971,38 +971,46 @@ function loadCustomers() {
 	})
 	return false;	
 }
-async function editCustomerPopup(btn, category_id) {
-	let modal = $('#editCategory');
-	$(modal).find('#category_id4Edit').val('')
-	$(modal).find('#desc4Edit').val('')
-	$(modal).find('#categoryName4Edit').val('')
-	$(modal).find(`#slcCategoryStatus option[value="Darft"]`).attr('selected', 'selected');
+async function editCustomerPopup(btn, id) {
+	let modal = $('#editCustomer');
+	$(modal).find('#customer_id4Edit').val('')
+	$(modal).find('#CustomerName4Edit').val('')
+	$(modal).find('#CustomerPhone4Edit').val('')
+	$(modal).find('#CustomerEmail4Edit').val('')
+	$(modal).find(`#slcCustomerStatus`).val('active');
 
-	await $.post("./incs/main.php?action=get&get=category", {category_id:category_id}, function(data) {
+	await $.post("./incs/main.php?action=get&get=customer", {id:id}, function(data) {
 		let res = JSON.parse(data)[0]
 		
-		$(modal).find('#category_id4Edit').val(res.id)
-		$(modal).find('#categoryName4Edit').val(res.name)
-		$(modal).find('#desc4Edit').val(res.description)
+		$(modal).find('#customer_id4Edit').val(res.id)
+		$(modal).find('#CustomerName4Edit').val(res.name)
+		$(modal).find('#CustomerPhone4Edit').val(res.phone_number)
+		$(modal).find('#CustomerEmail4Edit').val(res.email)
 
-		$(modal).find(`#slcCategoryStatus option[value="${res.status}"]`).attr('selected', 'selected');
+		$(modal).find(`#slcCustomerStatus`).val(res.membership_status.toLowerCase());
 		
 	});
 
 	$(modal).modal('show');
 }
 function editCustomer(form) {
-	let desc 				= $(form).find('#desc4Edit').val();
-	let categoryName 		= $(form).find('#categoryName4Edit').val();
-	let category_id			= $(form).find('#category_id4Edit').val();
-	let slcCategoryStatus	= $(form).find('#slcCategoryStatus').val();
+	let id 		= $(form).find('#customer_id4Edit').val();
+	let name 	= $(form).find('#CustomerName4Edit').val();
+	let phone	= $(form).find('#CustomerPhone4Edit').val();
+	let email	= $(form).find('#CustomerEmail4Edit').val();
+	let status	= $(form).find('#slcCustomerStatus').val();
 
-	if(!categoryName) {
-		showError('Category name is required.', 'categoryName4Edit');
+	if(!name) {
+		showError('Customer name is required.', 'CustomerName4Edit');
 		return false;
 	}
 
-	$.post("./incs/main.php?action=update&update=category", {desc:desc, categoryName:categoryName, category_id:category_id, slcCategoryStatus:slcCategoryStatus}, function(data) {
+	if(!phone) {
+		showError('Customer name is required.', 'CustomerPhone4Edit');
+		return false;
+	}
+
+	$.post("./incs/main.php?action=update&update=customer", {id:id, name:name, phone:phone, email:email, status:status}, function(data) {
 		console.log(data)
 		let res = JSON.parse(data)
 		if(res.error) {
@@ -1021,4 +1029,130 @@ function editCustomer(form) {
 		}
 	})
 	return false;
+}
+
+// Transactions
+function transactions() {
+	$('input#customerName').on('keyup', (e) => {
+		let searchResult = $(e.target).parents('.has-search').find('.search-result');
+		let search = $(e.target).val();
+
+		if(search) {
+			$.post("./incs/main.php?action=search&search=customer", {search:search}, function(data) {
+				console.log(data)
+				$(searchResult).show()
+				$(searchResult).html(data)
+			});
+		}
+	})
+
+	$('input#book').on('keyup', (e) => {
+		let searchResult = $(e.target).parents('.has-search').find('.search-result');
+		let search = $(e.target).val();
+
+		if(search) {
+			$.post("./incs/main.php?action=search&search=book", {search:search}, function(data) {
+				console.log(data)
+				$(searchResult).show()
+				$(searchResult).html(data)
+			});
+		}
+	})
+}
+
+function catchCustomer(id, name, phone) {
+	console.log(id, name)
+	let info = `${name}, ${phone}`
+	$('.search-result').hide();
+	$('input#customerName').val(info)
+	$('input#customer_id').val(id)
+	return false;
+}
+
+function catchBook(id, isbn, title, author) {
+	let book = `${isbn}, ${title} by ${author}`	
+	$('.search-result').hide();
+	$('input#book').val(book)
+	$('input#isbn').val(isbn)
+	return false;
+}
+
+function addTransaction(form) {
+	clearErrors();
+	const regex 	= /^[0-9]+-[0-9]+$/; 
+	let customer_id = $(form).find('#customer_id').val();
+	let isbn 		= $(form).find('#isbn').val();
+	let dueDate 	= $(form).find('#dueDate').val();
+
+	if(!customer_id) {
+		showError('Please search and select customer.', 'customerName');
+		return false;
+	}
+
+	if(!isbn) {
+		showError('Please search and select valid book.', 'book');
+		return false;
+	}
+
+	$.post("./incs/main.php?action=save&save=borrow", {customer_id:customer_id, isbn:isbn, dueDate:dueDate}, function(data) {
+		console.log(data)
+		let res = JSON.parse(data)
+		if(res.error) {
+			swal('Sorry', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: res.msg,
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+                location.reload();
+            })
+		}
+	})
+	return false;
+}
+
+function loadTransactions() {
+	let datatable = new DataTable('#transactionsTable', {
+		"processing": true,
+		"serverSide": true,
+		"bDestroy": true,
+		// "paging": false,
+		"serverMethod": 'post',
+		"ajax": {
+			"url": "./incs/main.php?action=load&load=transactions",
+			"method":"POST",
+			// dataFilter: function(data) {
+			// 	console.log(data)
+			// }
+		}, 
+		columns: [
+			{title: "Customer", data: null, render: function(data, type, row) {
+	            return `<div class="flex center-items">
+		            	<span>${row.customer}, ${row.phone_number}</span>
+		            </div>`;
+	        }},
+
+	        {title: "Book", data: null, render: function(data, type, row) {
+	            return `<div>${row.title}, ${row.isbn}</div>`;
+	        }},
+
+	        {title: "Borrow Date", data: null, render: function(data, type, row) {
+	            return `<div>${row.borrow_date}</div>`;
+	        }},
+
+	       	{title: "Status", data: null, render: function(data, type, row) {
+	            return `<div>${row.statusTxt}</div>`;
+	        }},
+
+	        {title: "Due Date", data: null, render: function(data, type, row) {
+	            return `<div>${row.due_date}</div>`;
+	        }},
+
+		]
+	})
+	return false;	
 }

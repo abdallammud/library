@@ -4,8 +4,8 @@
             <i class="bi sidebar-menu-toggler mr-l-5 icon bi-list"></i>
         </div>
         <a href="">
-            <!-- <img src="./assets/images/Logo-white.png" alt=""> -->
-            <h2 style="font-weight: bolder; color:var(--sidebar-text-color);; text-transform: uppercase;">Library </h2>
+            <img src="./assets/images/logo-icon.png" alt="" style="width: 12%;">
+            <!-- <h2 style="font-weight: bolder; color:var(--sidebar-text-color);; text-transform: uppercase;">Library </h2> -->
         </a>
     </div>
     <div class="app-header-menu flex center-items">

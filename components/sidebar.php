@@ -4,7 +4,7 @@ $active = 'dashboard';
 if(isset($_GET['menu'])) $active = $_GET['menu'];
 
 ?>
-<div class="app-sidebar  Large sidebar">
+<div class="app-sidebar   sidebar">
     <ul>
         <?php if($_SESSION['dashboard'] == 'on') { ?>
         <li>

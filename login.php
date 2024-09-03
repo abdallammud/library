@@ -9,8 +9,10 @@
             <div class="col-md-12 col-lg-12 d-flex align-items-center">
               <div class="card-body p-4 p-lg-5 text-black">
                 <form method="post" onsubmit="return loginUser(this)">
-                  <h4 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Login</h4>
-
+                  <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+                    <img src="./assets/images/logo.png" alt="" style="width: 70%; ">
+                    <h4 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px; margin-top: 10px; flex-basis: 100%; text-align: center;">Login</h4>
+                  </div>
                   <div class="form-outline mb-4" style="position: relative; display:flex; align-items: center;">
                     <i class="bi bi-person" style=" position: absolute; z-index: 999; color:#ccc; font-size: 1.5em; margin-left:10px;"></i>
                     <input type="text" id="username" class="form-control form-control-lg" onautocomplete="off" placeholder="Username or email" style="padding:10px; padding-left: 40px; " />
@@ -44,7 +46,7 @@
 <style>
   .full-page {
     background: rgb(67,60,195);
-    background: linear-gradient(90deg, rgba(67,60,195,1) 0%, rgba(3,3,153,1) 61%, rgba(15,138,163,1) 100%);
+    background: linear-gradient(90deg, rgb(44 45 127) 0%, rgb(44 45 127) 61%, rgba(15, 138, 163, 1) 100%);
     height: 100vh;
     display: flex;
   }

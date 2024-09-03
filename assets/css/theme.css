@@ -212,9 +212,11 @@
 	--dark-blue-500: #080838;
 
 	--theme: var(--blue-900);
+	--theme: #a3b943;
 	--theme-color: var(--dark-blue-500);
 	--theme-color-second: var(--white-100);
 	--theme-bg: var(--white-50);
+	--theme-bg-two: #2c2d7f;
 
 
     --font-family: o-r;
@@ -226,6 +228,8 @@
 	--border-radius-md: 0.5rem;
 	--border-radius-lg: 1rem;
 
+	--default-color: var(--black-800);
+
 	--app-header-bg: var(--theme-bg);
 	--app-header-box-shadow: 0 6px 6px rgba(var(--gray-200), 0.1);
 	--app-header-height: 3.75rem;
@@ -233,7 +237,7 @@
 	--app-header-brand-height: 3.75rem;
 	--app-header-brand-font-weight: 600;
     /* --app-header-icons-color: var(--theme-color); */
-	--app-header-icons-color: var(--gray-500);
+	--app-header-icons-color: var(--gray-200);
     --app-header-icons-hover: var(--black-200);
 
 	--sidebar-width: 15rem;
@@ -242,7 +246,7 @@
     --sidebar-font-family: m-r;
 	--sidebar-active-font: m-m;
 	--sidebar-text-size: 14x;
-    --sidebar-text-color: var(--theme-color);
+    --sidebar-text-color: var(--white-200);
     --sidebar-active-color: var(--white-100);
 
 
@@ -281,6 +285,7 @@
     /* --theme: var(--yellow-300); */
 	--theme-color: var(--white-400);
 	--theme-bg: var(--black-700);
+	--theme-bg-two: var(--black-700);
 	--theme-bg-second: var(--black-600);
 
 	--body-bg: var(--black-600);
@@ -291,6 +296,9 @@
     
     --sidebar-text-color: var(--theme-color);
     --sidebar-active-color: var(--white-50);
+
+    --default-color: var(--white-200);
+
 }
 
 :root .blue {

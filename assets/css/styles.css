@@ -38,7 +38,11 @@ a {
 	width: 100%; 
 	box-shadow: rgb(0 0 0 / 0%) 0px 3px 6px, rgb(0 0 0 / 12%) 0px 3px 6px;
 	background-color: var(--app-header-bg);
+	background-color: var(--theme-bg-two);
+	--theme-bg-two
 	z-index: 9999;
+	border-bottom: 1px solid #cfc9c9;
+	z-index: 999;
 }
 .app-header .brand {
 	padding: 0px 15px;
@@ -180,6 +184,7 @@ body.dark .app-header-dd ul li:hover {
 	/* box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px; */
 	top: var(--app-header-height);
 	background-color: var(--theme-bg);
+	background-color: var(--theme-bg-two);
 	/* background: transparent; */
 }
 .sidebar ul {
@@ -242,6 +247,7 @@ body.dark .app-header-dd ul li:hover {
 
 .sidebar.minified, .sidebar.minified ~ .app-content {
 	--sidebar-width: 4rem;
+/*	z-index: -1;*/
 }
 .sidebar.minified {
 	z-index: 9;
@@ -265,10 +271,95 @@ body.dark .app-header-dd ul li:hover {
 }
 
 
+.search-result {
+	position: absolute;
+    width: 92.5%;
+    min-height: 50px;
+    z-index: 99;
+    top: 90%;
+    border: 1px solid var(--gray-400);
+    background-color: var(--theme-bg);
+    font-size: .9em;
+    padding: 5px;
+    max-height: 200px;
+    overflow-y: scroll;
+    display: none;
+}
+.search-result .result-item {
+	background-color: var(--theme-bg);
+	padding: 5px;
+	border-bottom: 1px solid var(--gray-400);
+	transition-duration: 400ms;
+	cursor: pointer;
+
+}
+.search-result .result-item:hover {
+	background-color: var(--gray-100);
+}
+.dark .search-result .result-item:hover {
+	background-color: var(--gray-800);
+}
+
+.search-result .result-item p {
+	padding: 0px;
+	margin: 0px;
+}
+
+.empty-result {
+	width: 100%;
+    text-align: center;
+    margin-top: 10px;
+}
 
 
 
+/* Style for WebKit browsers (Chrome, Safari) */
 
+/* The scrollbar track (background of the scrollbar) */
+::-webkit-scrollbar {
+  width: 12px; /* Width of the vertical scrollbar */
+  height: 12px; /* Height of the horizontal scrollbar */
+}
+
+/* The part of the scrollbar that moves */
+::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar handle */
+  border-radius: 10px; /* Rounded corners for the scrollbar handle */
+}
+
+/* The part of the scrollbar track (not the handle) */
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* Color of the scrollbar track */
+  border-radius: 10px; /* Rounded corners for the track */
+}
+
+/* The part of the scrollbar track when hovering over the handle */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker color when the scrollbar handle is hovered */
+}
+
+/* Style for Firefox */
+
+/* Adjust the width of the scrollbar */
+.scrollable {
+  scrollbar-width: thin; /* Options: auto, thin, or none */
+  scrollbar-color: #888 #f1f1f1; /* thumb color and track color */
+}
+
+/* For custom scrollbar colors */
+.scrollable::-moz-scrollbar {
+  width: 12px;
+}
+
+.scrollable::-moz-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+}
+
+.scrollable::-moz-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 10px;
+}
 
 
 
@@ -307,7 +398,7 @@ body.dark .app-header-dd ul li:hover {
 .page-content {
 	background-color: var(--theme-bg);
 	border-radius: var(--border-radius-sm);
-	padding: 10px 15px;;
+	padding: 10px 15px;
 }
 .page-content.has-table {
 	min-width: 960px;
@@ -503,11 +594,11 @@ body.dark .table-striped > tbody > tr:nth-of-type(2n+1) {
 
 .modal-content {
 	background-color: var(--theme-bg);;
-	color: var(--sidebar-text-color);
+	color: var(--default-color);
 }
 .form-control, .form-control:focus, .form-control:hover {
 	background-color: transparent;
-	color: var(--sidebar-text-color);
+	color: var(--default-color);
 }
 
 .swal-button.swal-button--confirm {
@@ -525,7 +616,24 @@ body.dark .table-striped > tbody > tr:nth-of-type(2n+1) {
 .swal-icon--info:before, .swal-icon--info:after {
 	background-color: var(--theme);;
 }
+.btn-primary {
+    background: var(--theme);
+    color: var(--white-50);
+    border-color: var(--theme);
+}
 
+.btn-primary:hover, .btn-primary:active {
+	opacity: .8;
+
+	background: var(--theme);
+    color: var(--white-50);
+    border-color: var(--theme);
+}
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+	background: var(--theme-bg-two);
+    color: var(--white-50);
+    border-color: var(--theme-bg-two);
+}
 
 
 

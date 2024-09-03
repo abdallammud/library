@@ -75,6 +75,14 @@ $(document).ready(function() {
             $('i.darkmode-toggler').removeClass('bi-moon')
             $('i.darkmode-toggler').addClass('bi-brightness-high')
         }   
+    });
+
+    $('.datepicker').each(function(index, element) {
+        new Pikaday({
+            field: element,
+            position: 'bottom left',
+            reposition: false
+        });
     })
     
 });
