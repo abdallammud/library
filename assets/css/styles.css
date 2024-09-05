@@ -38,7 +38,7 @@ a {
 	width: 100%; 
 	box-shadow: rgb(0 0 0 / 0%) 0px 3px 6px, rgb(0 0 0 / 12%) 0px 3px 6px;
 	background-color: var(--app-header-bg);
-	background-color: var(--theme-bg-two);
+/*	background-color: var(--theme-bg-two);*/
 	--theme-bg-two
 	z-index: 9999;
 	border-bottom: 1px solid #cfc9c9;

@@ -237,7 +237,7 @@
 	--app-header-brand-height: 3.75rem;
 	--app-header-brand-font-weight: 600;
     /* --app-header-icons-color: var(--theme-color); */
-	--app-header-icons-color: var(--gray-200);
+	--app-header-icons-color: var(--gray-400);
     --app-header-icons-hover: var(--black-200);
 
 	--sidebar-width: 15rem;

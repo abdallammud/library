@@ -57,6 +57,13 @@ if(isset($_GET['menu'])) $active = $_GET['menu'];
         </li>
         <?php }  ?>
 
+        <li>
+            <a href="https://api.whatsapp.com/send?phone=252618211138">
+                <i class="bi bi-info-circle"></i>
+                <span>Help</span>
+            </a>
+        </li>
+
         <!-- <li>
             <a href="">
                 <i class="bi bi-currency-dollar"></i>
