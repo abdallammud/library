@@ -33,6 +33,29 @@ function isNumber(evt)  {
 function extractEmails ( text ){
     return text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi);
 }
+function formatDateRange(startDate, endDate) {
+    // Parse input dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Define options for formatting
+    const options = { month: 'short', day: 'numeric' };
+    const yearOptions = { ...options, year: 'numeric' };
+    
+    // Format the dates
+    const startFormatted = start.toLocaleDateString('en-US', options);
+    const endFormatted = end.toLocaleDateString('en-US', yearOptions);
+
+    // Check if the year is the same
+    if (start.getFullYear() === end.getFullYear()) {
+        // Same year
+        return `${startFormatted} - ${endFormatted}`;
+    } else {
+        // Different years
+        const startFormattedWithYear = `${startFormatted} ${start.getFullYear()}`;
+        return `${startFormattedWithYear} - ${endFormatted}`;
+    }
+}
 
 
 // Employees
@@ -1058,6 +1081,12 @@ function transactions() {
 			});
 		}
 	})
+
+	$('#slcTransactionStatus').on('change', (e) => {
+		if($(e.target).val() == 'returned') {
+			$('.slcReturnDateDiv').removeClass('hidden')
+		} else {$('.slcReturnDateDiv').addClass('hidden')}
+	})
 }
 
 function catchCustomer(id, name, phone) {
@@ -1145,14 +1174,65 @@ function loadTransactions() {
 	        }},
 
 	       	{title: "Status", data: null, render: function(data, type, row) {
-	            return `<div>${row.statusTxt}</div>`;
+	            return `<div>
+	            		<span onclick="return editTransactionPopup(this, '${row.id}')" class="bi bi-pencil mr-r-10 cursor hover"
+	            		></span>
+	            		${row.statusTxt}
+	            	</div>`;
 	        }},
 
 	        {title: "Due Date", data: null, render: function(data, type, row) {
 	            return `<div>${row.due_date}</div>`;
 	        }},
 
+	        {title: "Return Date", data: null, render: function(data, type, row) {
+	            return `<div>${row.return_date}</div>`;
+	        }},
+
 		]
 	})
 	return false;	
+}
+
+async function editTransactionPopup(btn, id) {
+	let modal = $('#editTransactionStatus');
+	$(modal).find('#transaction_id').val(id)
+	$(modal).find('#slcTransactionStatus').val('active')
+	// $(modal).find('#slcReturnDate').val('')
+
+	await $.post("./incs/main.php?action=get&get=borrowing", {id:id}, function(data) {
+		let res = JSON.parse(data)[0]
+		
+		// $(modal).find('#slcReturnDate').val(res.return_date)
+		$(modal).find(`#slcTransactionStatus`).val(res.status.toLowerCase());
+		
+	});
+
+	$(modal).modal('show');
+}
+
+function editTransactionStatus(form) {
+	let id 		= $(form).find('#transaction_id').val();
+	let date 	= $(form).find('#slcReturnDate').val();
+	let status	= $(form).find('#slcTransactionStatus').val();
+
+	$.post("./incs/main.php?action=update&update=borrowing", {id:id, date:date, status:status}, function(data) {
+		console.log(data)
+		let res = JSON.parse(data)
+		if(res.error) {
+			swal('Sorry', res.msg, 'error');
+			return false;
+		} else {
+			swal({
+                title: "Success",
+                text: res.msg,
+                icon: "success",
+                buttons: false,
+                timer: 2000,
+            }).then(() => {
+                location.reload();
+            })
+		}
+	})
+	return false;
 }

@@ -201,6 +201,9 @@ function load() {
                 'update' => 'trans_update.php',
                 'create' => 'trans_add.php',
             ],
+            'reports' => [
+                'show' => 'report_show.php',
+            ],
         ];
         
         // Check if the menu exists and the session permission is set
@@ -208,7 +211,7 @@ function load() {
             if ($menu == 'settings') {
                 require('settings.php');
             } else if ($menu == 'dashboard') {
-                require('dashboard.php');
+                require('./dashboard.php');
             } else {
                 $currentMenu = $menuPermissions[$menu];
 
@@ -487,6 +490,28 @@ function checkAccess($entity, $action, $message) {
 
     // Access granted
     return true;
+}
+function prefixNumberWithZeros($number) {
+    return str_pad($number, 4, '0', STR_PAD_LEFT);
+}
+function formatDateRange($startDate, $endDate) {
+    // Convert input dates to DateTime objects
+    $start = new DateTime($startDate);
+    $end = new DateTime($endDate);
+
+    // Format the dates
+    $startFormatted = $start->format('M j');
+    $endFormatted = $end->format('M j Y');
+
+    // Check if the year is the same
+    if ($start->format('Y') === $end->format('Y')) {
+        // Same year
+        return "$startFormatted - $endFormatted";
+    } else {
+        // Different years
+        $startFormatted .= ' ' . $start->format('Y');
+        return "$startFormatted - $endFormatted";
+    }
 }
 
 ?>

@@ -546,27 +546,32 @@ if(isset($_GET['action'])) {
 				$result['status'] = 201;
 				$result['error'] = false;
 
-				if(isset($_POST['order'])) {
-					if($orderBy == '0') $orderBy = 'name';
-					if($orderBy == '1') $orderBy = 'book_isbn';
-					if($orderBy == '2') $orderBy = 'borrow_date';
-					if($orderBy == '3') $orderBy = 'status';
-					if($orderBy == '4') $orderBy = 'due_date';
+				if (isset($_POST['order'])) {
+				    if ($orderBy == '0') $orderBy = 'name';
+				    if ($orderBy == '1') $orderBy = 'book_isbn';
+				    if ($orderBy == '2') $orderBy = 'borrow_date';
+				    if ($orderBy == '3') $orderBy = 'status';
+				    if ($orderBy == '4') $orderBy = 'due_date';
+				    if ($orderBy == '4') $orderBy = 'return_date';
 				}
-				$get_transactions = "SELECT `name`, `phone_number`, `title`, `author`, `isbn`, BR.`id`, `borrow_date`, BR.`status`, `due_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted') ";
-				// ORDER BY `reg_date` DESC
-				if($searchParam) {
-					$get_transactions .= " AND (`name` LIKE '%$searchParam%' OR `phone_number` LIKE '%$searchParam%' OR `title` LIKE '%$searchParam%' OR `author` LIKE '%$searchParam%' OR `isbn` LIKE '%$searchParam%')";
-				} 
-				
-				if($orderBy) {
-					if($orderBy == 'name') {
-						$get_transactions .= " ORDER BY `name` $order";
-					} else {
-						$get_transactions .= " ORDER BY BR.`$orderBy` $order";
-					}
+
+				$get_transactions = "
+				    SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted')";
+
+				// Adding search filter if $searchParam is set
+				if ($searchParam) {
+				    $get_transactions .= " AND ( C.`name` LIKE '%$searchParam%'  OR C.`phone_number` LIKE '%$searchParam%'  OR B.`title` LIKE '%$searchParam%'  OR B.`author` LIKE '%$searchParam%'  OR B.`isbn` LIKE '%$searchParam%')";
+				}
+
+				// Adding ORDER BY clause
+				if ($orderBy) {
+				    if ($orderBy == 'name') {
+				        $get_transactions .= " ORDER BY C.`name` $order";
+				    } else {
+				        $get_transactions .= " ORDER BY BR.`$orderBy` $order";
+				    }
 				} else {
-					$get_transactions .= " ORDER BY BR.`id` DESC";
+				    $get_transactions .= " ORDER BY BR.`id` DESC";
 				}
 
 				$noLimit = $get_transactions;
@@ -587,14 +592,21 @@ if(isset($_GET['action'])) {
 						$due_date 		= new dateTime($row['due_date']);
 						$status 		= $row['status'];
 						$added_date 	= new dateTime($row['added_date']);
+						$return_date 	= new dateTime($row['return_date']);
+						$return_date1 	= $row['return_date'];
 
 						$statusTxt = ucwords($status);
 
 						$added_date = $added_date->format('F d, Y');
 						$borrow_date = $borrow_date->format('F d, Y');
 						$due_date = $due_date->format('F d, Y');
+						$return_date = $return_date->format('F d, Y');
+
+						if($return_date1 == '0000-00-00 00:00:00') {
+							$return_date = '';
+						}
 						
-						$dataset[] = array('id' => $id, 'title' => $title, 'isbn' => $isbn, 'customer' => $customer, 'phone_number' => $phone_number, 'author' => $author, 'status' => $status, 'statusTxt' => $statusTxt, 'borrow_date' => $borrow_date, 'due_date' => $due_date, 'created_at' => $added_date);
+						$dataset[] = array('id' => $id, 'title' => $title, 'isbn' => $isbn, 'customer' => $customer, 'phone_number' => $phone_number, 'author' => $author, 'status' => $status, 'statusTxt' => $statusTxt, 'borrow_date' => $borrow_date, 'due_date' => $due_date, 'return_date' => $return_date, 'created_at' => $added_date);
 					}
 					$result['data']  	= $dataset;
 					$result['draw'] 	= $draw;
@@ -888,6 +900,39 @@ if(isset($_GET['action'])) {
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
+			} else if($_GET['update'] == 'borrowing') {
+				$result['msg'] = 'Correct action';
+				$result['status'] = 201;
+
+				$date 	= $_POST['date'] . date(" H:i:s");
+				$status = $_POST['status'];
+				$id 	= $_POST['id'];
+
+				checkAccess('transactions', 'update', 'Can\'t update a transaction. No privileges');
+
+				if(strtolower($status) == 'deleted') {
+					checkAccess('transactions', 'delete', 'Can\'t delete a transaction. No privileges');
+				}
+
+		        if($status != 'returned') {
+		        	$stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
+		        	$stmt->bind_param("ssss", $status, $updated_date, $myUser, $id);
+		        } else {
+		        	$stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `return_date` =?, `updated_date` =?, `returned_by` =? WHERE `id` = ?");
+		        	$stmt->bind_param("sssss", $status, $date, $updated_date, $myUser, $id);
+		        }
+		        
+		        if(!$stmt->execute()) {
+		            $result['msg']    = ' Couln\'t update Transaction.';
+		            $result['error'] = true;
+		            $result['errType']  = 'sql';
+		            $result['sqlErr']   = $stmt->error;
+		            echo json_encode($result); exit();
+		        } else {
+		        	$result['msg'] = ' Transaction status changed succefully.';
+		            $result['error'] = false;
+		            $result['id'] = $stmt->insert_id;
+		        }
 			} else {
 				$result['msg'] = 'Incorrect action';
 			}
@@ -923,11 +968,25 @@ if(isset($_GET['action'])) {
 		    	$result[] = $row;
 		    }
 		    echo json_encode($result);
+		} else if($_GET['get'] == 'borrowing') {
+			$id = $_POST['id'];
+			$result = [];
+			$get_trans = "SELECT * FROM `borrowing` WHERE `id` = '$id'";
+		    $transSet = $GLOBALS['conn']->query($get_trans);
+		    while($row = $transSet->fetch_assoc()) {
+		    	$result[] = $row;
+		    }
+		    echo json_encode($result);
 		}
 	} else if($_GET['action'] == 'search') {
 		if($_GET['search'] == 'customer') {
 			$search = $_POST['search'];
+			$forReport = '';
+			if(isset($_POST['forReport'])) $forReport = $_POST['forReport'];
 			$result = '';
+			$response = [];
+			$response['error'] = true;
+			$options = '';
 			$get_customer = "SELECT * FROM `customers` WHERE `membership_status` <> 'deleted' AND (`name` LIKE '%$search%' OR `phone_number` LIKE '%$search%' OR `email` LIKE '%$search%') LIMIT 10";
 		    $customerSet = $GLOBALS['conn']->query($get_customer);
 		    if($customerSet->num_rows > 0) {
@@ -937,24 +996,39 @@ if(isset($_GET['action'])) {
 			    	$name 			= $row['name'];
 			    	$email 			= $row['email'];
 
-			    	$result .= '<div onclick="return catchCustomer(\'' . $id . '\', \'' . $name . '\', \'' . $phone_number . '\');" class="result-item">
-	            		<p class="">
-	            			<span class="title bold">Name:</span>
-	            			<span class="val">'.$name.'</span>
-	            		</p>
-	            		<p class="">
-	            			<span class="title bold">Phone:</span>
-	            			<span class="val">'.$phone_number.'</span>
-	            		</p>
-	            	</div>';
+			    	if($forReport == 'Yes') {
+			    		$options .= '<option value="'.$id.'">'.$name.', '.$phone_number.'</option>';
+			    		$response['error'] = false;
+			    	} else {
+			    		$result .= '<div onclick="return catchCustomer(\'' . $id . '\', \'' . $name . '\', \'' . $phone_number . '\');" class="result-item">
+		            		<p class="">
+		            			<span class="title bold">Name:</span>
+		            			<span class="val">'.$name.'</span>
+		            		</p>
+		            		<p class="">
+		            			<span class="title bold">Phone:</span>
+		            			<span class="val">'.$phone_number.'</span>
+		            		</p>
+		            	</div>';
+			    	}
 			    }
 			} else {
 				$result = '<p class="empty-result">No customers found</p>';
 			}
-		    echo $result;
+			if($forReport == 'Yes') {
+				$response['options'] = $options;
+				echo json_encode($response);
+			} else {
+				echo $result;
+			}
 		} else if($_GET['search'] == 'book') {
 			$search = $_POST['search'];
+			$forReport = '';
+			if(isset($_POST['forReport'])) $forReport = $_POST['forReport'];
 			$result = '';
+			$response = [];
+			$response['error'] = true;
+			$options = '';
 			$get_book = "SELECT * FROM `books` WHERE `status` <> 'deleted' AND (`title` LIKE '%$search%' OR `author` LIKE '%$search%' OR `isbn` LIKE '%$search%') LIMIT 10";
 		    $bookSet = $GLOBALS['conn']->query($get_book);
 		    if($bookSet->num_rows > 0) {
@@ -964,26 +1038,308 @@ if(isset($_GET['action'])) {
 			    	$isbn 		= $row['isbn'];
 			    	$author 	= $row['author'];
 
-			    	$result .= '<div onclick="return catchBook(\'' . $id . '\', \'' . $isbn . '\', \'' . $title . '\', \'' . $author . '\');" class="result-item">
-	            		<p class="">
-	            			<span class="title bold">ISBN:</span>
-	            			<span class="val">'.$isbn.'</span>
-	            		</p>
-	            		<p class="">
-	            			<span class="title bold">Title:</span>
-	            			<span class="val">'.$title.'</span>
-	            		</p>
-	            		<p class="">
-	            			<span class="title bold">Author:</span>
-	            			<span class="val">'.$author.'</span>
-	            		</p>
-	            	</div>';
+			    	if($forReport == 'Yes') {
+			    		$options .= '<option value="'.$isbn.'">'.$title.', '.$isbn.'</option>';
+			    		$response['error'] = false;
+			    	} else {
+			    		$result .= '<div onclick="return catchBook(\'' . $id . '\', \'' . $isbn . '\', \'' . $title . '\', \'' . $author . '\');" class="result-item">
+		            		<p class="">
+		            			<span class="title bold">ISBN:</span>
+		            			<span class="val">'.$isbn.'</span>
+		            		</p>
+		            		<p class="">
+		            			<span class="title bold">Title:</span>
+		            			<span class="val">'.$title.'</span>
+		            		</p>
+		            		<p class="">
+		            			<span class="title bold">Author:</span>
+		            			<span class="val">'.$author.'</span>
+		            		</p>
+		            	</div>';
+			    	}
+			    	
 			    }
 			} else {
 				$result = '<p class="empty-result">No customers found</p>';
 			}
-		    echo $result;
+		    if($forReport == 'Yes') {
+				$response['options'] = $options;
+				echo json_encode($response);
+			} else {
+				echo $result;
+			}
+		} 
+	} else if($_GET['action'] == 'report') {
+		if(isset($_GET['report'])) {
+			$role = '';
+			$status = '';
+
+			$length = 20;
+			$searchParam = '';
+			$orderBy = '';
+			$order = 'ASC';
+			$draw = 0;
+			$start = 0;
+
+			if(isset($_POST['role'])) $role = $_POST['role'];
+			if(isset($_POST['status'])) $status = $_POST['status'];
+			if(isset($_POST['length'])) $length = $_POST['length'];
+			if(isset($_POST['start'])) $start = $_POST['start'];
+			if(isset($_POST['draw'])) $draw = $_POST['draw'];
+			if(isset($_POST['search'])) $searchParam = $_POST['search']['value'];
+
+			if(isset($_POST['order'])) {
+				$orderBy = $_POST['order'][0]['column'];
+				$order = strtoupper($_POST['order'][0]['dir']);
+			}
+
+			$dataset = array();
+			if($_GET['report'] == 'books') {
+				$result['status'] = 201;
+				$result['error'] = false;
+
+				// var_dump($_POST); exit();
+				$categoryFilter = '';
+				$statusFilter = '';
+
+				if(isset($_POST['categoryFilter'])) $categoryFilter = $_POST['categoryFilter'];
+				if(isset($_POST['statusFilter'])) $statusFilter = $_POST['statusFilter'];
+
+				if(isset($_POST['order'])) {
+					if($orderBy == '0') $orderBy = 'title';
+					if($orderBy == '1') $orderBy = 'isbn';
+					if($orderBy == '2') $orderBy = 'author';
+					if($orderBy == '3') $orderBy = 'published_year';
+					if($orderBy == '4') $orderBy = 'category_id';
+					if($orderBy == '5') $orderBy = 'status';
+					if($orderBy == '6') $orderBy = 'added_date';
+				}
+				$get_books = "SELECT `book_id`, `title`, `author`, `publisher`, `published_year`, B.`status`, `isbn`, `category_id`, B.`added_date`, `name` FROM `books` B INNER JOIN `categories` C ON C.`id` = B.`category_id` WHERE B.`status` NOT IN ('deleted') ";
+				// ORDER BY `reg_date` DESC
+				if($searchParam) {
+					$get_books .= " AND (`author` LIKE '%$searchParam%' OR `title` LIKE '%$searchParam%' OR `isbn` LIKE '%$searchParam%' OR `name` LIKE '%$searchParam%' OR `publisher` LIKE '%$searchParam%' OR `published_year` LIKE '%$searchParam%' OR B.`status` LIKE '%$searchParam%')";
+				} else{
+					if($categoryFilter) {
+						$get_books .= " AND B.`category_id` = '$categoryFilter'";
+					} 
+
+					if($statusFilter) {
+						$get_books .= " AND B.`status` LIKE '$statusFilter'";
+					}
+				}
+
+				
+				if($orderBy) {
+					if($orderBy == 'category_id') {
+						$get_books .= " ORDER BY `name` $order";
+					} else {
+						$get_books .= " ORDER BY B.`$orderBy` $order";
+					}
+				} else {
+					$get_books .= " ORDER BY B.`book_id` DESC";
+				}
+
+				$noLimit = $get_books;
+				$get_books .= " LIMIT $start, ".$length;
+				$allBooks = $GLOBALS['conn']->query($noLimit);
+				$books = $GLOBALS['conn']->query($get_books);
+				if($books->num_rows > 0) {
+					$result['error'] = false;
+
+					while($row = $books->fetch_assoc()) {
+						$book_id 	= $row['book_id'];
+						$title 		= $row['title'];
+						$isbn 		= $row['isbn'];
+						$author 	= $row['author'];
+						$category_id 	= $row['category_id'];
+						$publisher 		= $row['publisher'];
+						$published_year = $row['published_year'];
+						$status 		= $row['status'];
+						$added_date 	= new dateTime($row['added_date']);
+
+						$statusTxt = ucwords($status);
+						if(strtolower($status) == 'active') $statusTxt = 'Available';
+
+						$added_date = $added_date->format('F d, Y');
+						$category = $row['name'];
+
+						$dataset[] = array('book_id' => $book_id, 'title' => $title, 'isbn' => $isbn, 'category' => $category, 'category_id' => $category_id, 'author' => $author, 'status' => $status, 'statusTxt' => $statusTxt, 'publisher' => $publisher, 'published_year' => $published_year, 'created_at' => $added_date);
+					}
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = $allBooks->num_rows;
+					$result['iTotalDisplayRecords'] = $allBooks->num_rows;
+
+				} else {
+					// $result['error'] = true;
+					$result['msg'] = "No records found";
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = 0;
+					$result['iTotalDisplayRecords'] = 0;
+				}
+			} else if($_GET['report'] == 'customers') {
+				$result['status'] = 201;
+				$result['error'] = false;
+				// var_dump($_POST);
+				if(isset($_POST['order'])) {
+					if($orderBy == '0') $orderBy = 'name';
+					if($orderBy == '1') $orderBy = 'phone_number';
+					if($orderBy == '2') $orderBy = 'email';
+					if($orderBy == '3') $orderBy = 'membership_status';
+					if($orderBy == '4') $orderBy = 'added_date';
+				}
+				$get_customers = "SELECT * FROM `customers` WHERE `membership_status` != 'deleted' ";
+				// ORDER BY `added_date` DESC
+				if($searchParam) {
+					$get_customers .= " AND (`name` LIKE '%$searchParam%' OR `phone_number` LIKE '%$searchParam%' OR `email` LIKE '%$searchParam%')";
+				}
+
+				if($orderBy) {
+					$get_customers .= " ORDER BY `$orderBy` $order";
+				}
+				$noLimit = $get_customers;
+				$get_customers .= " LIMIT $start, ".$length;
+				$customers = $GLOBALS['conn']->query($get_customers);
+				$allcustomers = $GLOBALS['conn']->query($noLimit);
+				if($customers->num_rows > 0) {
+					$result['foundRows'] = $customers->num_rows;
+					$result['error'] = false;
+
+					while($row = $customers->fetch_assoc()) {
+						// $dataset[] = $row;
+						$id = $row['id'];
+						$name = $row['name'];
+						$email = $row['email'];
+						$phone_number = $row['phone_number'];
+						
+						$membership_status 	= $row['membership_status'];
+						$added_date = new dateTime($row['added_date']);
+						$added_date = $added_date->format('F d Y');
+
+						$dataset[] = array('name' => $name, 'id' => $id, 'email' => $email, 'phone_number' => $phone_number, 'created_at' => $added_date, 'membership_status' => ucwords($membership_status));
+					}
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = $allcustomers->num_rows;
+					$result['iTotalDisplayRecords'] = $allcustomers->num_rows;
+				} else {
+					// $result['error'] = true;
+					$result['msg'] = "No records found";
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = 0;
+					$result['iTotalDisplayRecords'] = 0;
+				
+				}
+			} else if($_GET['report'] == 'transactions') {
+				$result['status'] = 201;
+				$result['error'] = false;
+
+				$isbn = '';
+				if(isset($_POST['isbn'])) $isbn = $_POST['isbn'];
+
+				$customer_id = '';
+				if(isset($_POST['customer_id'])) $customer_id = $_POST['customer_id'];
+
+
+				$startDate 	= $_POST['startDate'] ." 00:00:00";
+				$endDate 	= $_POST['endDate']." 23:59:59";
+				$report 	= $_POST['report'];
+
+				if (isset($_POST['order'])) {
+				    if ($orderBy == '0') $orderBy = 'name';
+				    if ($orderBy == '1') $orderBy = 'book_isbn';
+				    if ($orderBy == '2') $orderBy = 'borrow_date';
+				    if ($orderBy == '3') $orderBy = 'status';
+				    if ($orderBy == '4') $orderBy = 'due_date';
+				    if ($orderBy == '4') $orderBy = 'return_date';
+				}
+
+				$get_transactions = "
+				    SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted')  ";
+				    if($report == 'bookTransactions') {
+				    	$get_transactions .= " AND BR.`added_date` BETWEEN '$startDate' AND '$endDate' AND BR.`book_isbn` = '$isbn'";
+				    } else if($report == 'customerTransactions') {
+				    	$get_transactions .= " AND BR.`added_date` BETWEEN '$startDate' AND '$endDate' AND BR.`customer_id` = '$customer_id'";
+				    } else if($report == 'overdueBooks') {
+				    	$get_transactions .= " AND BR.`due_date` < CURDATE()";
+				    } else if($report == 'returnedBooks') {
+				    	$get_transactions .= " AND BR.`return_date` BETWEEN '$startDate' AND '$endDate' AND BR.`status` = 'returned'";
+				    } else if($report == 'booksCheckedout') {
+				    	$get_transactions .= " AND BR.`added_date` BETWEEN '$startDate' AND '$endDate'";
+				    }
+
+				// Adding search filter if $searchParam is set
+				if ($searchParam) {
+				    $get_transactions .= " AND ( C.`name` LIKE '%$searchParam%'  OR C.`phone_number` LIKE '%$searchParam%'  OR B.`title` LIKE '%$searchParam%'  OR B.`author` LIKE '%$searchParam%'  OR B.`isbn` LIKE '%$searchParam%')";
+				}
+
+				// Adding ORDER BY clause
+				if ($orderBy) {
+				    if ($orderBy == 'name') {
+				        $get_transactions .= " ORDER BY C.`name` $order";
+				    } else {
+				        $get_transactions .= " ORDER BY BR.`$orderBy` $order";
+				    }
+				} else {
+				    $get_transactions .= " ORDER BY BR.`id` DESC";
+				}
+
+				$noLimit = $get_transactions;
+				$get_transactions .= " LIMIT $start, ".$length;
+				$allTransactions = $GLOBALS['conn']->query($noLimit);
+				$transactions = $GLOBALS['conn']->query($get_transactions);
+				if($transactions->num_rows > 0) {
+					$result['error'] = false;
+
+					while($row = $transactions->fetch_assoc()) {
+						$id 		= $row['id'];
+						$title 		= $row['title'];
+						$isbn 		= $row['isbn'];
+						$author 	= $row['author'];
+						$customer 		= $row['name'];
+						$phone_number 	= $row['phone_number'];
+						$borrow_date 	= new dateTime($row['borrow_date']);
+						$due_date 		= new dateTime($row['due_date']);
+						$status 		= $row['status'];
+						$added_date 	= new dateTime($row['added_date']);
+						$return_date 	= new dateTime($row['return_date']);
+						$return_date1 	= $row['return_date'];
+
+						$statusTxt = ucwords($status);
+
+						$added_date = $added_date->format('F d, Y');
+						$borrow_date = $borrow_date->format('F d, Y');
+						$due_date = $due_date->format('F d, Y');
+						$return_date = $return_date->format('F d, Y');
+
+						if($return_date1 == '0000-00-00 00:00:00') {
+							$return_date = '';
+						}
+						
+						$dataset[] = array('id' => $id, 'title' => $title, 'isbn' => $isbn, 'customer' => $customer, 'phone_number' => $phone_number, 'author' => $author, 'status' => $status, 'statusTxt' => $statusTxt, 'borrow_date' => $borrow_date, 'due_date' => $due_date, 'return_date' => $return_date, 'created_at' => $added_date);
+					}
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = $allTransactions->num_rows;
+					$result['iTotalDisplayRecords'] = $allTransactions->num_rows;
+
+				} else {
+					// $result['error'] = true;
+					$result['msg'] = "No records found";
+					$result['data']  	= $dataset;
+					$result['draw'] 	= $draw;
+					$result['iTotalRecords'] = 0;
+					$result['iTotalDisplayRecords'] = 0;
+				}
+			}
+		} else {
+			$result['msg'] = 'Incorrect action';
 		}
+
+		echo json_encode($result);
+
 	}
 }
 

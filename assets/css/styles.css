@@ -311,6 +311,10 @@ body.dark .app-header-dd ul li:hover {
     margin-top: 10px;
 }
 
+.hidden {
+	display: none;
+}
+
 
 
 /* Style for WebKit browsers (Chrome, Safari) */
@@ -444,6 +448,38 @@ body.dark .app-header-dd ul li:hover {
   	background-image: url(../images/primary-orange-wave.svg), linear-gradient(to right,var(--yellow-400) 0,var(--yellow-600) 100%);
 }
 
+.dash-card .card-icon {
+	background: red;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px 20px;
+	font-size: 1.5rem;
+	margin-right: 10px;
+	border-radius: 10px;
+}
+.dash-card.borrowed-books {
+	background-color: #00017666;
+}
+.dash-card.borrowed-books .card-icon{
+	background-color: #54579f;
+}
+
+.dash-card.over-due-books {
+	background-color: #a3b9434f;
+}
+.dash-card.over-due-books .card-icon{
+	background-color: #a3b943bd;
+}
+
+
+
+
+
+
+
+
+
 /* Charts */ 
 .chart {
 	padding: 10px;
@@ -456,8 +492,8 @@ body.dark .app-header-dd ul li:hover {
 	flex-basis: 30%;
 }
 canvas {
-	width: 100%;
-	height: 400px;
+	width: 100% !important;
+	height: 330px !important;
 	border: 1px solid #ebebeb;
 	border-radius:8px;
 }
@@ -636,7 +672,9 @@ body.dark .table-striped > tbody > tr:nth-of-type(2n+1) {
 }
 
 
-
+.theme-bg {
+    background-color: var(--theme-bg);
+}
 
 
 
@@ -726,6 +764,12 @@ body.dark .table-striped > tbody > tr:nth-of-type(2n+1) {
 }
 .half-flex {
 	flex-basis: 50%;
+}
+.half-flex-qu {
+	flex-basis: 25%;
+}
+.half-flex-third {
+	flex-basis: 33.33%;
 }
 .space-bw {
     justify-content: space-between;

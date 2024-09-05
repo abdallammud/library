@@ -12,6 +12,7 @@
         <!-- <base href="> -->
         <link rel="shortcut icon" href="<?=BASE_URI;?>/assets/images/icon.png">
         <link rel="stylesheet" href="<?=BASE_URI;?>/assets/dist/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
         <link rel="stylesheet" href="<?=BASE_URI;?>/assets/dist/bootstrap/css/bootstrap-grid.min.css">
         <link rel="stylesheet" href="<?=BASE_URI;?>/assets/dist/font-awesome/css/font-awesome.min.css">
         <link rel="stylesheet" href="<?=BASE_URI;?>/assets/dist/pikaday/css/pikaday.css">
