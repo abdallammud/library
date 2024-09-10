@@ -3,7 +3,7 @@
     <div class="modal-dialog " role="Category" style="max-width:400px;">
         <form class="modal-content" style="border-radius: 14px 14px 0px 0px; " onsubmit="return saveCategory(this)">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCategoryLabel">Add New Category</h5>
+                <h5 class="modal-title" id="addCategoryLabel">إضافة فئة جديدة</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -13,7 +13,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="categoryName">Category name <span class="form-error">This is required</span></label>
+                                <label class="label" for="categoryName">اسم الفئة    <span class="form-error">This is required</span></label>
                                 <input  type="text" placeholder="Category name" class="form-control"  id="categoryName" >
                             </div>
                         </div>
@@ -21,7 +21,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="desc">Description <span class="form-error">This is required</span></label>
+                                <label class="label" for="desc">وصف     <span class="form-error">This is required</span></label>
                                 <textarea  type="text" placeholder="Description" class="form-control"  id="desc" ></textarea>
                             </div>
                         </div>
@@ -30,7 +30,7 @@
             </div>
             <div class="modal-footer">
                 <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                <button type="submit" class="mbtn primary cursor" style="width: 100px;">Save</button>
+                <button type="submit" class="mbtn primary cursor" style="width: 100px;">يحفظ  </button>
             </div>
         </form>
     </div>
@@ -40,7 +40,7 @@
     <div class="modal-dialog " role="Category" style="max-width:400px;">
         <form class="modal-content" style="border-radius: 14px 14px 0px 0px; " onsubmit="return editCategory(this)">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCategoryLabel">Edit Category</h5>
+                <h5 class="modal-title" id="addCategoryLabel">تحرير الفئة  </h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -50,7 +50,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="missingSerial">Category name <span class="form-error">This is required</span></label>
+                                <label class="label" for="missingSerial">اسم الفئة   <span class="form-error">This is required</span></label>
                                 <input type="hidden" id="category_id4Edit">
                                 <input  type="text" placeholder="Category name" class="form-control"  id="categoryName4Edit" >
                             </div>
@@ -59,7 +59,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="desc4Edit">Description <span class="form-error">This is required</span></label>
+                                <label class="label" for="desc4Edit">وصف   <span class="form-error">This is required</span></label>
                                 <textarea  type="text" placeholder="Description" class="form-control"  id="desc4Edit" ></textarea>
                             </div>
                         </div>
@@ -67,11 +67,10 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="missingSerial">Status <span class="form-error">This is required</span></label>
+                                <label class="label" for="missingSerial">حالة   <span class="form-error">This is required</span></label>
                                 <select class="form-control"  id="slcCategoryStatus" >
-                                    <option value="suspended">Suspend</option>
-                                    <option value="active">Active</option>
-                                    <option value="deleted">Delete</option>
+                                    <option value="active">نشيط  </option>
+                                    <option value="deleted">يمسح  </option>
                                 </select>
                             </div>
                         </div>
@@ -80,7 +79,7 @@
             </div>
             <div class="modal-footer">
                 <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                <button type="submit" class="mbtn primary cursor" style="width: 100px;">Edit</button>
+                <button type="submit" class="mbtn primary cursor" style="width: 100px;">يحرر  </button>
             </div>
         </form>
     </div>

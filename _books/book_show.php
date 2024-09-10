@@ -9,38 +9,60 @@ while($row = $books->fetch_assoc()) {
 ?>
 <div class="page-content" >
 	<p class="data-table-heading center-items flex space-bw  mr-t-10 mfs-8 bold">
-		<span>BOOK DETAILS</span>
+		<span>تفاصيل الكتاب</span>
 	</p>
 	<div class="row" style="padding: 0px 15px;">
 		<!-- Left Column: Book Details -->
 		<div class="col-md-8" style="border: 1px solid #ddd; border-radius:5px">
 			<div class="book-detail">
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Title:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">رقم سري  </div>
+					<div class="col-md-9">#<?=$_GET['book_id'];?></div>
+				</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">عنوان  </div>
 					<div class="col-md-9"><?=$result['title'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Author:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">مؤلف  </div>
 					<div class="col-md-9"><?=$result['author'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Publisher:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">الناشر  </div>
 					<div class="col-md-9"><?=$result['publisher'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Published Date:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">تاريخ النشر  </div>
 					<div class="col-md-9"><?=$result['published_year'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Category:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">فئة  </div>
 					<div class="col-md-9"><?=get_categoryInfo($result['category_id'])['name'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:10px 0px;">
-					<div class="col-md-3 bold">Added By:</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold"> أجزاء   </div>
+					<div class="col-md-9">
+						<?=$result['parts'];?> 
+					</div>
+				</div>
+
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">جزء  </div>
+					<div class="col-md-9">
+						<?=$result['part_num'];?> 
+					</div>
+				</div>
+				
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">عدد النسخ  </div>
+					<div class="col-md-9"><?=$result['number_of_copies'];?></div>
+				</div>
+				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+					<div class="col-md-3 bold">تمت الإضافة بواسطة  </div>
 					<div class="col-md-9"><?=get_userInfo(null,$result['added_by'])['full_name'];?></div>
 				</div>
-				<div class="row" style="padding:10px 0px;">
-					<div class="col-md-3 bold">Added Date:</div>
+				<div class="row" style="padding:5px 0px;">
+					<div class="col-md-3 bold">تاريخ الإضافة</div>
 					<div class="col-md-9"><?=formatDateTime($result['added_date'], true);?></div>
 				</div>
 			</div>
@@ -85,7 +107,7 @@ while($row = $books->fetch_assoc()) {
     <div class="modal-dialog " role="BookStatus" style="max-width:400px;">
         <form class="modal-content" style="border-radius: 14px 14px 0px 0px; " onsubmit="return editBookCover(this)">
             <div class="modal-header">
-                <h5 class="modal-title" id="addBookStatusLabel">Change Book Cover</h5>
+                <h5 class="modal-title" id="addBookStatusLabel">تغيير غلاف الكتاب  </h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -95,7 +117,7 @@ while($row = $books->fetch_assoc()) {
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                            	<label for="coverImage" class="form-label label">Cover Image <span class="form-error">This is required</span></label>
+                            	<label for="coverImage" class="form-label label">صورة الغلاف   <span class="form-error">This is required</span></label>
 								<input style="padding:2px;" class="form-control cursor" type="file" id="coverImage">
                                 <input type="hidden" value="<?=$result['book_id'];?>" id="book_id4CoverChange">
                             </div>
@@ -105,7 +127,7 @@ while($row = $books->fetch_assoc()) {
             </div>
             <div class="modal-footer">
                 <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                <button type="submit" class="mbtn primary cursor" style="width: 100px;">Apply</button>
+                <button type="submit" class="mbtn primary cursor" style="width: 100px;">يتقدم  </button>
             </div>
         </form>
     </div>

@@ -4,7 +4,7 @@
             <i class="bi sidebar-menu-toggler mr-l-5 icon bi-list"></i>
         </div>
         <a href="">
-            <img src="./assets/images/logo-icon.png" alt="" style="width: 12%;">
+            <img src="<?=BASE_URI;?>/assets/images/logo-icon.png" alt="" style="width: 12%;">
             <!-- <h2 style="font-weight: bolder; color:var(--sidebar-text-color);; text-transform: uppercase;">Library </h2> -->
         </a>
     </div>
@@ -89,7 +89,7 @@
                     <p class="text-muted"><?=$_SESSION['role'];?></p>
                 </div>
                 <ul>
-                    <li class="cursor">
+                    <!-- <li class="cursor">
                         <div class="flex pad-l pd-l-5 center-items">
                             <i class="bi bi-person-circle mfs-1-5 gray-500 mr-r-10"></i>
                             <p>Profile</p>
@@ -100,11 +100,11 @@
                             <i class="bi bi-gear mfs-1-5 gray-500 mr-r-10"></i>
                             <p>Settings</p>
                         </div>
-                    </li>
+                    </li> -->
                     <li class="cursor">
                         <div class="flex pd-l-5 center-items">
                             <i class="bi bi-box-arrow-left mfs-1-5 gray-500 mr-r-10"></i>
-                            <a style="margin-top: -3px; text-decoration: none; color: inherit;" href="./logout">Logout</a>
+                            <a style="margin-top: -3px; text-decoration: none; color: inherit;" href="./logout">تسجيل الخروج  </a>
                         </div>
                     </li>
                 </ul>

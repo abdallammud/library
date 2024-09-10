@@ -71,13 +71,13 @@ if(isset($_GET['action'])) {
 				if(isset($_POST['desc'])) $desc = $_POST['desc'];
 				$categoryName = $_POST['categoryName'];
 
-				checkAccess('categories', 'create', 'Can\'t create a category. No privileges');
+				checkAccess('categories', 'create', 'لا يمكن إنشاء فئة. لا امتيازات  ');
 
 				// Check if username already exist
 		        $check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted'";
 		        $existSet = $GLOBALS['conn']->query($check_exist);
 		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' This category already exists.';
+		            $result['msg'] = ' هذه الفئة موجودة بالفعل.  ';
 		            $result['error'] = true;
 		            $result['errType'] = 'category';
 		            echo json_encode($result); 
@@ -87,13 +87,13 @@ if(isset($_GET['action'])) {
 		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `categories` (`name`, `description`, `added_by`) VALUES (?, ?, ?)");
 		        $stmt->bind_param("sss", $categoryName, $desc, $myUser);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t record category.';
+		            $result['msg']    = ' لا يمكن تسجيل الفئة  .';
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Category saved succefully.';
+		        	$result['msg'] = ' تم حفظ الفئة بنجاح.';
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
@@ -109,20 +109,24 @@ if(isset($_GET['action'])) {
 				$published_year = $_POST['published_year'];
 				$slcBookCategory = $_POST['slcBookCategory'];
 
+				$number_of_copies = $_POST['number_of_copies'];
+				$parts = $_POST['parts'];
+				$part_num = $_POST['part_num'];
+
 				checkAccess('books', 'create', 'Can\'t create a book. No privileges');
 
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted'");
 				if($check_exist->num_rows > 0) {
 					$result['error'] = true;
-            		$result['msg'] = "ISBN Number already exists.";
+            		$result['msg'] = "رقم ISBN موجود بالفعل  .";
             		echo json_encode($result);
 					exit();
 				}
 
 				$image = '';
 
-				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `books` (`title`, `cover_image`, `isbn`, `author`, `publisher`, `published_year`, `status`, `category_id`, `added_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-		        $stmt->bind_param("sssssssss", $bookTitle, $image, $isbn, $authorName, $publisher, $published_year, $status, $slcBookCategory, $myUser);
+				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `books` (`title`, `cover_image`, `isbn`, `author`, `publisher`, `published_year`, `status`, `category_id`, `number_of_copies`, `parts`, `part_num`, `added_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		        $stmt->bind_param("ssssssssssss", $bookTitle, $image, $isbn, $authorName, $publisher, $published_year, $status, $slcBookCategory, $number_of_copies, $parts, $part_num, $myUser);
 		        $status = 'active';
 		        $uploadOk = false;
 				// Check if form is submitted and there is no error
@@ -141,7 +145,7 @@ if(isset($_GET['action'])) {
 			        $check = getimagesize($_FILES["file"]["tmp_name"]);
 			        if ($check == false) {
 			            $result['error'] = true;
-			            $result['msg'] = 'File is not an image.';
+			            $result['msg'] = 'الملف ليس صورة  .';
 			            $uploadOk = false;
 			            echo json_encode($result);
 						exit();
@@ -160,7 +164,7 @@ if(isset($_GET['action'])) {
 				    if ($_FILES["file"]["size"] > 5000000) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "Sorry, your file is too large.";
+			            $result['msg'] = "عذرًا، الملف الخاص بك كبير جدًا  .";
 			            echo json_encode($result);
 						exit();
 				    }
@@ -171,7 +175,7 @@ if(isset($_GET['action'])) {
 				    if (!in_array($file_extension, $allowed_extensions)) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+			            $result['msg'] = "عذرًا، يُسمح فقط بملفات JPG وJPEG وPNG وGIF  .";
 			            echo json_encode($result);
 						exit();
 				    }
@@ -180,13 +184,13 @@ if(isset($_GET['action'])) {
 				    	$image = $newfilename;
 				    	if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
 			            	$result['error'] = true;
-		            		$result['msg'] = "Sorry, there was an error uploading your file.";
+		            		$result['msg'] = "عذرًا، حدث خطأ أثناء تحميل ملفك  .";
 		            		echo json_encode($result);
 							exit();
 			            }
 				    } else {
 				        $result['error'] = true;
-	            		$result['msg'] = "Sorry, your file was not uploaded. Book not saved";
+	            		$result['msg'] = "عذرا، لم يتم تحميل الملف الخاص بك. لم يتم حفظ الكتاب  ";
 	            		echo json_encode($result);
 	            		exit();
 				    }
@@ -199,11 +203,11 @@ if(isset($_GET['action'])) {
 
 				if($stmt->execute()) {
                 	$result['error'] = false;
-            		$result['msg'] = "Book saved succefully.";
+            		$result['msg'] = "تم حفظ الكتاب بنجاح  .";
 		            $result['id'] = $stmt->insert_id;
                 } else {
                 	$result['error'] = true;
-            		$result['msg'] = "Something went wrong with data storing.";
+            		$result['msg'] = "حدث خطأ ما في تخزين البيانات  .";
             		echo json_encode($result);
 					exit();
                 }
@@ -217,13 +221,13 @@ if(isset($_GET['action'])) {
 				$name = $_POST['name'];
 				$phone = $_POST['phone'];
 
-				checkAccess('customers', 'create', 'Can\'t create a customer. No privileges');
+				checkAccess('customers', 'create', 'لا يمكن إنشاء عميل. لا امتيازات  ');
 
 				// Check if username already exist
 		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `phone_number` = '$phone' AND `membership_status` <> 'deleted'";
 		        $existSet = $GLOBALS['conn']->query($check_exist);
 		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' This customer already exists.';
+		            $result['msg'] = ' هذا العميل موجود بالفعل  .';
 		            $result['error'] = true;
 		            $result['errType'] = 'customer';
 		            echo json_encode($result); 
@@ -233,13 +237,13 @@ if(isset($_GET['action'])) {
 		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `customers` (`name`, `phone_number`, `email`, `added_by`) VALUES (?, ?, ?, ?)");
 		        $stmt->bind_param("ssss", $name, $phone, $email, $myUser);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t record customer.';
+		            $result['msg']    = ' لا يمكن تسجيل العميل  .';
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Customer saved succefully.';
+		        	$result['msg'] = ' تم حفظ العميل بنجاح  ';
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
@@ -679,17 +683,17 @@ if(isset($_GET['action'])) {
 				$category_id = $_POST['category_id'];
 				$slcCategoryStatus = $_POST['slcCategoryStatus'];
 
-				checkAccess('categories', 'update', 'Can\'t update a category. No privileges');
+				checkAccess('categories', 'update', 'لا يمكن تحديث الفئة. لا امتيازات  ');
 
 				if(strtolower($slcCategoryStatus) == 'deleted') {
-					checkAccess('categories', 'delete', 'Can\'t delete a category. No privileges');
+					checkAccess('categories', 'delete', 'لا يمكن حذف فئة. لا امتيازات  ');
 				}
 
 				// Check if username already exist
 		        $check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted' AND `id` NOT IN ($category_id)";
 		        $existSet = $GLOBALS['conn']->query($check_exist);
 		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' This category already exists.';
+		            $result['msg'] = ' هذه الفئة موجودة بالفعل  .';
 		            $result['error'] = true;
 		            $result['errType'] = 'category';
 		            echo json_encode($result); 
@@ -699,13 +703,13 @@ if(isset($_GET['action'])) {
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `categories` SET `name` =?, `status` =?, `description` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
 		        $stmt->bind_param("ssssss", $categoryName, $slcCategoryStatus, $desc, $updated_date,  $myUser, $category_id);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t update category.';
+		            $result['msg']    = ' لا يمكن تحديث الفئة  .';
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Category editted succefully.';
+		        	$result['msg'] = ' تم تعديل الفئة بنجاح  ';
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
@@ -720,33 +724,36 @@ if(isset($_GET['action'])) {
 				$authorName 	= $_POST['authorName'];
 				$publisher 		= $_POST['publisher'];
 				$published_year = $_POST['published_year'];
-				$slcBookCategory = $_POST['slcBookCategory'];
-				$slcBookStatus 	= $_POST['slcBookStatus'];
+				$slcBookCategory 	= $_POST['slcBookCategory'];
+				$number_of_copies 	= $_POST['number_of_copies'];
+				$parts 				= $_POST['parts'];
+				$part_num 			= $_POST['part_num'];
+				$slcBookStatus 		= $_POST['slcBookStatus'];
 
-				checkAccess('books', 'update', 'Can\'t update a book. No privileges');
+				checkAccess('books', 'update', 'لا يمكن تحديث كتاب. لا امتيازات  ');
 
 				if(strtolower($slcBookStatus) == 'deleted') {
-					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+					checkAccess('books', 'delete', 'لا يمكن حذف كتاب. لا امتيازات  ');
 				}
 
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `book_id` <> '$book_id'");
 				if($check_exist->num_rows > 0) {
 					$result['error'] = true;
-            		$result['msg'] = "ISBN Number already exists.";
+            		$result['msg'] = "رقم ISBN موجود بالفعل  .";
             		echo json_encode($result);
 					exit();
 				}
 
-				$stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `title` =?, `isbn` =?, `author` =?, `publisher` =?, `published_year` =?, `status` =?, `category_id` =?, `updated_by` =?, `updated_date` =? WHERE `book_id` =?");
-		        $stmt->bind_param("ssssssssss", $bookTitle, $isbn, $authorName, $publisher, $published_year, $slcBookStatus, $slcBookCategory, $myUser, $updated_date, $book_id);
+				$stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `title` =?, `isbn` =?, `author` =?, `publisher` =?, `published_year` =?, `status` =?, `category_id` =?, `number_of_copies` =?, `parts` =?, `part_num` =?, `updated_by` =?, `updated_date` =? WHERE `book_id` =?");
+		        $stmt->bind_param("sssssssssssss", $bookTitle, $isbn, $authorName, $publisher, $published_year, $slcBookStatus, $slcBookCategory, $number_of_copies, $parts, $part_num, $myUser, $updated_date, $book_id);
 				
 				if($stmt->execute()) {
                 	$result['error'] = false;
-            		$result['msg'] = "Book editted succefully.";
+            		$result['msg'] = "تم تحرير الكتاب بنجاح.";
 		            $result['id'] = $stmt->insert_id;
                 } else {
                 	$result['error'] = true;
-            		$result['msg'] = "Something went wrong with data storing.";
+            		$result['msg'] = "حدث خطأ ما في تخزين البيانات.";
             		echo json_encode($result);
 					exit();
                 }	
@@ -870,17 +877,17 @@ if(isset($_GET['action'])) {
 				$id 	= $_POST['id'];
 				$status = $_POST['status'];
 
-				checkAccess('customers', 'update', 'Can\'t update a customer. No privileges');
+				checkAccess('customers', 'update', 'لا يمكن تحديث العميل. لا امتيازات  ');
 
 				if(strtolower($status) == 'deleted') {
-					checkAccess('customers', 'delete', 'Can\'t delete a customer. No privileges');
+					checkAccess('customers', 'delete', 'لا يمكن حذف العميل. لا امتيازات  ');
 				}
 
 				// Check if username already exist
 		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `membership_status` <> 'deleted' AND `id` NOT IN ($id)";
 		        $existSet = $GLOBALS['conn']->query($check_exist);
 		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' This customer already exists.';
+		            $result['msg'] = ' هذا العميل موجود بالفعل  .';
 		            $result['error'] = true;
 		            $result['errType'] = 'customer';
 		            echo json_encode($result); 
@@ -890,13 +897,13 @@ if(isset($_GET['action'])) {
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `customers` SET `name` =?, `phone_number` =?, `email` =?, `membership_status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
 		        $stmt->bind_param("sssssss", $name, $phone, $email, $status, $updated_date, $myUser, $id);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t update customer.';
+		            $result['msg']    = ' لا يمكن تحديث العميل  .';
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Customer editted succefully.';
+		        	$result['msg'] = ' تم تحرير العميل بنجاح  .';
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }

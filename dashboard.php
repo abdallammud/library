@@ -2,8 +2,8 @@
 	<div class="dashboard  ">
         <div class="flex center-items space-bw">
             <div style="border-radius:10px;" class="welcome mcon theme-bg full-flex pd-a-10 mr-b-20 flex wrap">
-                <h4 class="bold full-flex"><span class=""><?=$_SESSION['fullName'];?> </span>, Welcome back</h4>
-                <span class="small text-muted">Monitoring dashboard</span>
+                <h4 class="bold full-flex"><span class=""><?=$_SESSION['fullName'];?> </span>, مرحبًا</h4>
+                <span class="small text-muted">لوحة المراقبة</span>
             </div>
             
         </div>
@@ -20,7 +20,7 @@
                                         </div>
                                     </div>
                                     <div class="right flex wrap">
-                                        <p class="full-flex spacing-0 ">Borrowed Books</p>
+                                        <p class="full-flex spacing-0 ">الكتب المستعارة</p>
                                         <h3 class="spacing-0 value bold">6224</h3>
                                     </div>
                                 </div>
@@ -37,7 +37,7 @@
                                         </div>
                                     </div>
                                     <div class="right flex wrap">
-                                        <p class="full-flex spacing-0 ">Overdue Books</p>
+                                        <p class="full-flex spacing-0 ">الكتب المتأخرة</p>
                                         <h3 class="spacing-0 bold">6224</h3>
                                     </div>
                                 </div>
@@ -54,7 +54,7 @@
                                         </div>
                                     </div>
                                     <div class="right flex wrap">
-                                        <p class="full-flex spacing-0 ">All Books</p>
+                                        <p class="full-flex spacing-0 ">جميع الكتب</p>
                                         <h3 class="spacing-0 bold">6224</h3>
                                     </div>
                                 </div>
@@ -71,7 +71,7 @@
                                         </div>
                                     </div>
                                     <div class="right flex wrap">
-                                        <p class="full-flex spacing-0 ">All Customers</p>
+                                        <p class="full-flex spacing-0 ">جميع العملاء  </p>
                                         <h3 class="spacing-0 bold">6224</h3>
                                     </div>
                                 </div>
@@ -82,7 +82,7 @@
                 <div class="col-lg-8 py-2" >
                     <div class="">
                         <div class="barChart theme-bg chart large">
-                            <p class="bold title">Borrowing Statistics</p>
+                            <p class="bold title">إحصائيات الاقتراض</p>
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
             <div class="row mr-t-10">
                 <div class="col-lg-12 py-2">
                     <div class="theme-bg rounded py-2 px-2">
-                        <p class="bold title">Overdue Books</p>
+                        <p class="bold title">الكتب المتأخرة</p>
                         <table style="width: 100%;" class="table mfs-8  mcon mfs-9 table-striped " id="overdueBooksTable"></table>
                     </div>
                 </div>

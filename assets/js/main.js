@@ -369,7 +369,7 @@ function saveCategory(form) {
 	let categoryName = $(form).find('#categoryName').val();
 
 	if(!categoryName) {
-		showError('Category name is required.', 'categoryName');
+		showError('اسم الفئة مطلوب  .', 'categoryName');
 		return false;
 	}
 
@@ -407,8 +407,34 @@ function loadCategories() {
 			// 	console.log(data)
 			// }
 		}, 
+		"drawCallback": function(settings) {
+            var label = $('#categoriesTable_filter label');
+		    // Update the label's text node without affecting the input
+		    label.contents().filter(function() {
+		        return this.nodeType === Node.TEXT_NODE;
+		    }).replaceWith(' بحث   ');
+
+		    var label = $('#categoriesTable_length label');
+    
+		    // Get all child nodes of the label
+		    var children = label.contents();
+		    
+		    // Replace the text nodes "Show" and "entries"
+		    children.each(function() {
+		        if (this.nodeType === Node.TEXT_NODE) {
+		            if ($(this).text().trim() === 'Show') {
+		                $(this).replaceWith(' إظهار  ');
+		            } else if ($(this).text().trim() === 'entries') {
+		                $(this).replaceWith(' إدخالات  ');
+		            }
+		        }
+		    });
+
+		    $('#categoriesTable_previous a').text('سابق  ')
+		    $('#categoriesTable_next a').text('التالي  ')
+        },
 		columns: [
-			{title: "Category", data: null, render: function(data, type, row) {
+			{title: "فئة  ", data: null, render: function(data, type, row) {
 	            return `<div class="flex center-items">
 	            		<span onclick="return editCategoryPopup(this, '${row.category_id}')" class="bi bi-pencil mr-r-10 cursor hover"
 	            		></span>
@@ -416,61 +442,21 @@ function loadCategories() {
 		            </div>`;
 	        }},
 
-	        {title: "Description", data: null, render: function(data, type, row) {
+	        {title: "وصف   ", data: null, render: function(data, type, row) {
 	            return `<div>${row.description}</div>`;
 	        }},
-	         {title: "Status", data: null, render: function(data, type, row) {
+	         {title: "حالة   ", data: null, render: function(data, type, row) {
 	            return `<div>${row.status}</div>`;
 	        }},
 
 
-	        {title: "Date", data: null, render: function(data, type, row) {
+	        {title: "تاريخ   ", data: null, render: function(data, type, row) {
 	            return `<div>${row.created_at}</div>`;
 	        }},
 
 		]
 	})
-	/*$.post("./incs/main.php?action=load&load=categories", function(data) {
-		// console.log(data)
-		let res = JSON.parse(data)
-		console.log(res)
-		let dataset = [];
-		if(res.error) {
-			dataset = [];
-			console.log(res)
-		} else {
-			dataset = res.dataset;
-		}
-
-		let columns = [
-			{title: "Category", data: null, render: function(data, type, row) {
-	            return `<div class="flex center-items">
-	            		<span onclick="return editCategoryPopup(this, '${row.category_id}')" class="bi bi-pencil mr-r-10 cursor hover"
-	            		></span>
-		            	<span>${row.name}</span>
-		            </div>`;
-	        }},
-
-	        {title: "Description", data: null, render: function(data, type, row) {
-	            return `<div>${row.description}</div>`;
-	        }},
-	         {title: "Status", data: null, render: function(data, type, row) {
-	            return `<div>${row.status}</div>`;
-	        }},
-
-
-	        {title: "Date", data: null, render: function(data, type, row) {
-	            return `<div>${row.created_at}</div>`;
-	        }},
-
-		]
-
-		let datatable = new DataTable('#categoriesTable', {
-			data: dataset,
-			"paging": false,
-			"columns": columns
-		})
-	});*/
+	
 
 	return false;	
 }
@@ -501,7 +487,7 @@ function editCategory(form) {
 	let slcCategoryStatus	= $(form).find('#slcCategoryStatus').val();
 
 	if(!categoryName) {
-		showError('Category name is required.', 'categoryName4Edit');
+		showError('اسم الفئة مطلوب  .', 'categoryName4Edit');
 		return false;
 	}
 
@@ -538,34 +524,42 @@ function submitBook(form) {
 	let published_year 	= $(form).find('#published_year').val();
 	let slcBookCategory = $(form).find('#slcBookCategory').val();
 
+	let number_of_copies = $(form).find('#number_of_copies').val();
+	let parts 			= $(form).find('#parts').val();
+	let part_num 		= $(form).find('#part_num').val();
+
 	let coverImage 		= $(form).find('#coverImage').val();
     let ext 			= coverImage.split('.').pop();
     let file 			= $(form).find('#coverImage')[0].files[0]
 
+    if(!number_of_copies) number_of_copies = 1;
+    if(!parts) parts = 1;
+    if(!part_num) part_num = 1;
+
 	if(!bookTitle) {
-		showError('Book title is required.', 'bookTitle');
+		showError('عنوان الكتاب مطلوب   .', 'bookTitle');
 		return false;
 	}
 
 	if(!isbn) {
-		showError('ISBN Number is required.', 'isbn');
+		showError('رقم ISBN مطلوب   .', 'isbn');
 		return false;
 	}
 
 	if(!authorName) {
-		showError('Author name Number is required.', 'authorName');
+		showError('اسم المؤلف الرقم مطلوب   .', 'authorName');
 		return false;
 	}
 
 	if(!slcBookCategory) {
-		showError('Please select book category.', 'slcBookCategory');
+		showError('الرجاء تحديد فئة الكتاب  .', 'slcBookCategory');
 		return false;
 	}
 
 	console.log(bookTitle, slcBookCategory, coverImage, isbn, authorName, publisher)
 
    	$(form).find('button span.loader').addClass('ld-ring ld-spin')
-	$(form).find('button span.text').html('Please wait....');
+	$(form).find('button span.text').html('انتظر من فضلك....  ');
 	$(form).find('button').attr('disabled', true)
 
 	var formdata = new FormData();
@@ -576,11 +570,14 @@ function submitBook(form) {
     formdata.append("authorName", authorName);
     formdata.append("publisher", publisher);
     formdata.append("published_year", published_year);
+    formdata.append("number_of_copies", number_of_copies);
+    formdata.append("parts", parts);
+    formdata.append("part_num", part_num);
 	var ajax = new XMLHttpRequest();
 	ajax.addEventListener("load", function(event) {
 		console.log(event.target.response)
 			$(form).find('button span.loader').removeClass('ld-ring ld-spin')
-			$(form).find('button span.text').html('Submit');
+			$(form).find('button span.text').html('يُقدِّم  ');
 			$(form).find('button').attr('disabled', false)
 		let res = JSON.parse(event.target.response)
 		if(res.error) {
@@ -638,9 +635,37 @@ function loadBooks(categoryFilter, statusFilter) {
             if (emptyRow.length > 0) {
                 emptyRow.html("No books found matching your filters."); // Customize the message
             }
+
+            var label = $('#allBooksDT_filter label');
+		    // Update the label's text node without affecting the input
+		    label.contents().filter(function() {
+		        return this.nodeType === Node.TEXT_NODE;
+		    }).replaceWith(' بحث   ');
+
+		    var label = $('#allBooksDT_length label');
+    
+		    // Get all child nodes of the label
+		    var children = label.contents();
+		    
+		    // Replace the text nodes "Show" and "entries"
+		    children.each(function() {
+		        if (this.nodeType === Node.TEXT_NODE) {
+		            if ($(this).text().trim() === 'Show') {
+		                $(this).replaceWith(' إظهار  ');
+		            } else if ($(this).text().trim() === 'entries') {
+		                $(this).replaceWith(' إدخالات  ');
+		            }
+		        }
+		    });
+
+		    $('#allBooksDT_previous a').text('سابق  ')
+		    $('#allBooksDT_next a').text('التالي  ')
+
+
+            // $('#allBooksDT_filter').find('label').text('يبحث  ')
         },
 		columns: [
-	        {title: "Title", data: null, render: function(data, type, row) {
+	        {title: "عنوان  ", data: null, render: function(data, type, row) {
 	            return `<div>
 	            		<span class="bi bi-pencil cursor hover mr-r-5" onclick="return editBookPopup(${row.book_id}, 'book')"></span>
 	            		<a href="./book/show/${data.book_id}" class="bi bi-eye cursor hover mr-r-5" onclick="return editBookPopup(${row.book_id}, 'book')"></a>
@@ -648,38 +673,38 @@ function loadBooks(categoryFilter, statusFilter) {
 		            </div>`;
 	        }},
 
-	        {title: "ISBN ", data: null, render: function(data, type, row) {
+	        {title: "رقم ISBN   ", data: null, render: function(data, type, row) {
 	            return `<div>
 	            		<span>${row.isbn}</span>
 	            	</div>`;
 	        }},
 
-	        {title: "Author", data: null, render: function(data, type, row) {
+	        {title: "الكاتب", data: null, render: function(data, type, row) {
 	            return `<div>
 	            		<span>${row.author}</span>
 	            	</div>`;
 	        }},
 
-	        {title: "Published", data: null, render: function(data, type, row) {
+	        {title: "أصدر  ", data: null, render: function(data, type, row) {
 	            return `<div>
 	            		<span>${row.published_year}</span>
 	            	</div>`;
 	        }},
 
-	        {title: "Category", data: null, render: function(data, type, row) {
+	        {title: "فئة  ", data: null, render: function(data, type, row) {
 	            return `<div>
 	            		<span>${row.category}</span>
 	            	</div>`;
 	        }},
 
-	        {title: "Status", data: null, render: function(data, type, row) {
+	        {title: "حالة  ", data: null, render: function(data, type, row) {
 	             return `<div class="${row.status}">
 	            		<span class="bi bi-pencil cursor hover mr-r-5" onclick="return editBookPopup(${row.book_id}, 'status')"></span>
 	            		<span>${row.statusTxt}</span>
 	            	</div>`;
 	        }},
 
-        	{title: "Date", data: null, render: function(data, type, row) {
+        	{title: "تاريخ  ", data: null, render: function(data, type, row) {
 	            return `<div class="flex center-items">
 		            	<span>${row.created_at}</span>
 		            </div>`;
@@ -728,6 +753,9 @@ async function editBookPopup(book_id, edit) {
 	$(modal).find('#publisher4Edit').val(res.publisher)
 	$(modal).find('#published_year4Edit').val(res.published_year)
 	$(modal).find(`#slcBookCategory4Edit`).val(res.category_id)
+	$(modal).find('#number_of_copies4Edit').val(res.number_of_copies)
+	$(modal).find('#parts4Edit').val(res.parts)
+	$(modal).find('#part_num4Edit').val(res.part_num)
 	$(modal).find(`#slcBookStatus4Edit`).val(res.status.toLowerCase())
 	console.log(res)
 	$(modal).modal('show');
@@ -743,32 +771,35 @@ function editBook(form) {
 	let publisher 		= $(form).find('#publisher4Edit').val();
 	let published_year 	= $(form).find('#published_year4Edit').val();
 	let slcBookCategory = $(form).find('#slcBookCategory4Edit').val();
+	let number_of_copies = $(form).find('#number_of_copies4Edit').val();
+	let parts 			= $(form).find('#parts4Edit').val();
+	let part_num 		= $(form).find('#part_num4Edit').val();
 	let slcBookStatus	= $(form).find('#slcBookStatus4Edit').val();
 
 	if(!bookTitle) {
-		showError('Book title is required.', 'bookTitle4Edit');
+		showError('عنوان الكتاب مطلوب.', 'bookTitle4Edit');
 		return false;
 	}
 
 	if(!isbn) {
-		showError('ISBN Number is required.', 'isbn');
+		showError('رقم ISBN مطلوب.', 'isbn');
 		return false;
 	}
 
 	if(!authorName) {
-		showError('Author name Number is required.', 'authorName4Edit');
+		showError('اسم المؤلف الرقم مطلوب.', 'authorName4Edit');
 		return false;
 	}
 
 	if(!slcBookCategory) {
-		showError('Please select book category.', 'slcBookCategory4Edit');
+		showError('الرجاء تحديد فئة الكتاب.', 'slcBookCategory4Edit');
 		return false;
 	}
 
 	console.log(bookTitle, slcBookCategory, coverImage, isbn, authorName, publisher)
 
    	$(form).find('button span.loader').addClass('ld-ring ld-spin')
-	$(form).find('button span.text').html('Please wait....');
+	$(form).find('button span.text').html('انتظر من فضلك....');
 	$(form).find('button').attr('disabled', true)
 
 	var formdata = new FormData();
@@ -779,12 +810,15 @@ function editBook(form) {
     formdata.append("authorName", authorName);
     formdata.append("publisher", publisher);
     formdata.append("published_year", published_year);
+    formdata.append("number_of_copies", number_of_copies);
+    formdata.append("parts", parts);
+    formdata.append("part_num", part_num);
     formdata.append("slcBookStatus", slcBookStatus);
 	var ajax = new XMLHttpRequest();
 	ajax.addEventListener("load", function(event) {
 		console.log(event.target.response)
 			$(form).find('button span.loader').removeClass('ld-ring ld-spin')
-			$(form).find('button span.text').html('Submit');
+			$(form).find('button span.text').html('يُقدِّم');
 			$(form).find('button').attr('disabled', false)
 		let res = JSON.parse(event.target.response)
 		if(res.error) {
@@ -922,12 +956,12 @@ function addCustomer(form) {
 	let email 		= $(form).find('#email').val();
 
 	if(!customerName) {
-		showError('Customer name is required.', 'customerName');
+		showError('اسم العميل مطلوب.', 'customerName');
 		return false;
 	}
 
 	if(!phoneNumber) {
-		showError('Customer phone number is required.', 'phoneNumber');
+		showError('رقم هاتف العميل مطلوب  .', 'phoneNumber');
 		return false;
 	}
 
@@ -965,8 +999,34 @@ function loadCustomers() {
 			// 	console.log(data)
 			// }
 		}, 
+		"drawCallback": function(settings) {
+            var label = $('#customersTable_filter label');
+		    // Update the label's text node without affecting the input
+		    label.contents().filter(function() {
+		        return this.nodeType === Node.TEXT_NODE;
+		    }).replaceWith(' بحث   ');
+
+		    var label = $('#customersTable_length label');
+    
+		    // Get all child nodes of the label
+		    var children = label.contents();
+		    
+		    // Replace the text nodes "Show" and "entries"
+		    children.each(function() {
+		        if (this.nodeType === Node.TEXT_NODE) {
+		            if ($(this).text().trim() === 'Show') {
+		                $(this).replaceWith(' إظهار  ');
+		            } else if ($(this).text().trim() === 'entries') {
+		                $(this).replaceWith(' إدخالات  ');
+		            }
+		        }
+		    });
+
+		    $('#customersTable_previous a').text('سابق  ')
+		    $('#customersTable_next a').text('التالي  ')
+        },
 		columns: [
-			{title: "Name", data: null, render: function(data, type, row) {
+			{title: "اسم  ", data: null, render: function(data, type, row) {
 	            return `<div class="flex center-items">
 	            		<span onclick="return editCustomerPopup(this, '${row.id}')" class="bi bi-pencil mr-r-10 cursor hover"
 	            		></span>
@@ -974,19 +1034,19 @@ function loadCustomers() {
 		            </div>`;
 	        }},
 
-	        {title: "Phone", data: null, render: function(data, type, row) {
+	        {title: "هاتف  ", data: null, render: function(data, type, row) {
 	            return `<div>${row.phone_number}</div>`;
 	        }},
 
-	        {title: "Email", data: null, render: function(data, type, row) {
+	        {title: "بريد إلكتروني  ", data: null, render: function(data, type, row) {
 	            return `<div>${row.email}</div>`;
 	        }},
 
-	       	{title: "Status", data: null, render: function(data, type, row) {
+	       	{title: "حالة  ", data: null, render: function(data, type, row) {
 	            return `<div>${row.membership_status}</div>`;
 	        }},
 
-	        {title: "Date Joined", data: null, render: function(data, type, row) {
+	        {title: "تاريخ الانضمام  ", data: null, render: function(data, type, row) {
 	            return `<div>${row.created_at}</div>`;
 	        }},
 
@@ -1024,12 +1084,12 @@ function editCustomer(form) {
 	let status	= $(form).find('#slcCustomerStatus').val();
 
 	if(!name) {
-		showError('Customer name is required.', 'CustomerName4Edit');
+		showError('اسم العميل مطلوب  .', 'CustomerName4Edit');
 		return false;
 	}
 
 	if(!phone) {
-		showError('Customer name is required.', 'CustomerPhone4Edit');
+		showError('مطلوب هاتف العميل  .', 'CustomerPhone4Edit');
 		return false;
 	}
 

@@ -1,18 +1,18 @@
 <?php require('book_add.php'); ?>
 <div class="page-content">
 	<p class="data-table-heading center-items flex space-bw mr-b-20 mr-t-10 mfs-8 bold">
-		<span>ALL BOOKS</span>
+		<span>جميع الكتب  </span>
 		<!-- <a href="./articles/create"  class="mbtn cursor primary">Add Book</a> -->
 		<?php if($_SESSION['create'] == 'on') { ?>
-			<button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary">Add Book</button>
+			<button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary">إضافة كتاب  </button>
 		<?php } ?>
 	</p>
 	<div class="row justify-end">
 		<div class="col-lg-3">
 			<div class="form-group">
-            	<label class="label" for="categoryFilter">Category <span class="form-error">This is required</span></label>
+            	<label class="label" for="categoryFilter">فئة <span class="form-error">This is required</span></label>
             	<select type="text" class="form-control" id="categoryFilter" name="categoryFilter">
-                	<option value="">All</option>
+                	<option value="">الجميع</option>
                 	<?php 
                         $get_categories = "SELECT * FROM `categories` WHERE `status` NOT IN ('deleted')";
                         $categories = $GLOBALS['conn']->query($get_categories);
@@ -29,12 +29,11 @@
 		</div>
 		<div class="col-lg-3">
 			<div class="form-group">
-            	<label class="label" for="statusFilter">Status <span class="form-error">This is required</span></label>
+            	<label class="label" for="statusFilter">حالة   <span class="form-error">This is required</span></label>
             	<select type="text" class="form-control" id="statusFilter" name="statusFilter">
-                	<option value="">All</option>
-                	<option value="active">Active</option>
-                	<option value="suspended">Suspended</option>
-                	<option value="not available">Not available</option>
+                	<option value="">الجميع</option>
+                	<option value="active">متوفر  </option>
+                	<option value="not available">غير متوفر  </option>
             	</select>
         	</div>
 		</div>

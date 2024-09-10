@@ -2,7 +2,7 @@
     <div class="modal-dialog " role="BookStatus" style="max-width:400px;">
         <form class="modal-content" style="border-radius: 14px 14px 0px 0px; " onsubmit="return addCustomer(this)">
             <div class="modal-header">
-                <h5 class="modal-title" id="addBookStatusLabel">Add New Customer</h5>
+                <h5 class="modal-title" id="addBookStatusLabel">إضافة عميل جديد  </h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -12,7 +12,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="customerName">Customer name <span class="form-error">This is required</span></label>
+                                <label class="label" for="customerName">اسم العميل   <span class="form-error">This is required</span></label>
                                 <input  type="text" placeholder="Required" class="form-control"  id="customerName" >
                             </div>
                         </div>
@@ -20,7 +20,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="phoneNumber">Phone Number <span class="form-error">This is required</span></label>
+                                <label class="label" for="phoneNumber">رقم التليفون   <span class="form-error">This is required</span></label>
                                 <input  type="text" placeholder="Required" class="form-control"  id="phoneNumber" >
                             </div>
                         </div>
@@ -28,7 +28,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="email">Email <span class="form-error">This is required</span></label>
+                                <label class="label" for="email">بريد إلكتروني   <span class="form-error">This is required</span></label>
                                 <input  type="text" placeholder="Optional" class="form-control"  id="email" >
                             </div>
                         </div>
@@ -37,7 +37,7 @@
             </div>
             <div class="modal-footer">
                 <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                <button type="submit" class="mbtn primary cursor" style="width: 100px;">Save</button>
+                <button type="submit" class="mbtn primary cursor" style="width: 100px;">يحفظ  </button>
             </div>
         </form>
     </div>
@@ -48,7 +48,7 @@
     <div class="modal-dialog " role="Customer" style="max-width:400px;">
         <form class="modal-content" style="border-radius: 14px 14px 0px 0px; " onsubmit="return editCustomer(this)">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCustomerLabel">Edit Customer</h5>
+                <h5 class="modal-title" id="addCustomerLabel">تحرير العميل  </h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -58,7 +58,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="CustomerName4Edit">Customer name <span class="form-error">This is required</span></label>
+                                <label class="label" for="CustomerName4Edit">اسم العميل   <span class="form-error">This is required</span></label>
                                 <input type="hidden" id="customer_id4Edit">
                                 <input  type="text" class="form-control"  id="CustomerName4Edit" >
                             </div>
@@ -68,7 +68,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="CustomerPhone4Edit"> Phone Number<span class="form-error">This is required</span></label>
+                                <label class="label" for="CustomerPhone4Edit"> رقم التليفون  <span class="form-error">This is required</span></label>
                                 <input  type="text"  class="form-control"  id="CustomerPhone4Edit" >
                             </div>
                         </div>
@@ -77,7 +77,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="CustomerEmail4Edit">Email address <span class="form-error">This is required</span></label>
+                                <label class="label" for="CustomerEmail4Edit">عنوان البريد الإلكتروني   <span class="form-error">This is required</span></label>
                                 <input  type="text"  class="form-control"  id="CustomerEmail4Edit" >
                             </div>
                         </div>
@@ -86,11 +86,11 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="label" for="slcCustomerStatus">Status <span class="form-error">This is required</span></label>
+                                <label class="label" for="slcCustomerStatus">حالة   <span class="form-error">This is required</span></label>
                                 <select class="form-control"  id="slcCustomerStatus" >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="deleted">Delete</option>
+                                    <option value="active">نشيط  </option>
+                                    <option value="inactive">غير نشط</option>
+                                    <option value="deleted">يمسح  </option>
                                 </select>
                             </div>
                         </div>
@@ -99,7 +99,7 @@
             </div>
             <div class="modal-footer">
                 <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                <button type="submit" class="mbtn primary cursor" style="width: 100px;">Edit</button>
+                <button type="submit" class="mbtn primary cursor" style="width: 100px;">يحرر  </button>
             </div>
         </form>
     </div>
