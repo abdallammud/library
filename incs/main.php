@@ -2,8 +2,17 @@
 // session_start();
 
 require('utils.php');
+
+
 $role = $_SESSION['role'];
 $myUser = $_SESSION['myUser'];
+
+if($_SESSION['language'] == 'ar') {
+    require('../lang/ar.php');
+} else {
+    require('../lang/en.php');
+}
+global $lang;
 
 // Classes
 require('Modal.php');
@@ -63,49 +72,50 @@ if(isset($_GET['action'])) {
 		            $result['error'] = false;
 		        }
 			} else if($_GET['save'] == 'category') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
 				$desc = NULL;
 
-				if(isset($_POST['desc'])) $desc = $_POST['desc'];
+				if (isset($_POST['desc'])) $desc = $_POST['desc'];
 				$categoryName = $_POST['categoryName'];
 
-				checkAccess('categories', 'create', 'لا يمكن إنشاء فئة. لا امتيازات  ');
+				checkAccess('categories', 'create', $lang['no_privileges_create_category']);
 
-				// Check if username already exist
-		        $check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted'";
-		        $existSet = $GLOBALS['conn']->query($check_exist);
-		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' هذه الفئة موجودة بالفعل.  ';
-		            $result['error'] = true;
-		            $result['errType'] = 'category';
-		            echo json_encode($result); 
-		            exit();
-		        }
+				// Check if category already exists
+				$check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted'";
+				$existSet = $GLOBALS['conn']->query($check_exist);
+				if ($existSet->num_rows > 0) {
+				    $result['msg'] = $lang['category_exists'];
+				    $result['error'] = true;
+				    $result['errType'] = 'category';
+				    echo json_encode($result); 
+				    exit();
+				}
 
-		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `categories` (`name`, `description`, `added_by`) VALUES (?, ?, ?)");
-		        $stmt->bind_param("sss", $categoryName, $desc, $myUser);
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' لا يمكن تسجيل الفئة  .';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' تم حفظ الفئة بنجاح.';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `categories` (`name`, `description`, `added_by`) VALUES (?, ?, ?)");
+				$stmt->bind_param("sss", $categoryName, $desc, $myUser);
+				if (!$stmt->execute()) {
+				    $result['msg'] = $lang['category_registration_error'];
+				    $result['error'] = true;
+				    $result['errType'] = 'sql';
+				    $result['sqlErr'] = $stmt->error;
+				    echo json_encode($result); 
+				    exit();
+				} else {
+				    $result['msg'] = $lang['category_saved_success'];
+				    $result['error'] = false;
+				    $result['id'] = $stmt->insert_id;
+				}
 			} else if($_GET['save'] == 'book') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 				$result['error'] = false;
 
-				$bookTitle 		= $_POST['bookTitle'];
-				$isbn 			= $_POST['isbn'];
-				$authorName 	= $_POST['authorName'];
-				$publisher 		= $_POST['publisher'];
+				$bookTitle = $_POST['bookTitle'];
+				$isbn = $_POST['isbn'];
+				$authorName = $_POST['authorName'];
+				$publisher = $_POST['publisher'];
 				$published_year = $_POST['published_year'];
 				$slcBookCategory = $_POST['slcBookCategory'];
 
@@ -113,60 +123,53 @@ if(isset($_GET['action'])) {
 				$parts = $_POST['parts'];
 				$part_num = $_POST['part_num'];
 
-				checkAccess('books', 'create', 'Can\'t create a book. No privileges');
+				// checkAccess('books', 'create', 'Can\'t create a book. No privileges');
+				checkAccess('books', 'create', $lang['no_privileges_for_book_create']);
 
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted'");
 				if($check_exist->num_rows > 0) {
-					$result['error'] = true;
-            		$result['msg'] = "رقم ISBN موجود بالفعل  .";
-            		echo json_encode($result);
-					exit();
+				    $result['error'] = true;
+				    $result['msg'] = $lang['isbn_exists'];
+				    echo json_encode($result);
+				    exit();
 				}
 
 				$image = '';
 
 				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `books` (`title`, `cover_image`, `isbn`, `author`, `publisher`, `published_year`, `status`, `category_id`, `number_of_copies`, `parts`, `part_num`, `added_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-		        $stmt->bind_param("ssssssssssss", $bookTitle, $image, $isbn, $authorName, $publisher, $published_year, $status, $slcBookCategory, $number_of_copies, $parts, $part_num, $myUser);
-		        $status = 'active';
-		        $uploadOk = false;
+				$stmt->bind_param("ssssssssssss", $bookTitle, $image, $isbn, $authorName, $publisher, $published_year, $status, $slcBookCategory, $number_of_copies, $parts, $part_num, $myUser);
+				$status = 'active';
+				$uploadOk = false;
+
 				// Check if form is submitted and there is no error
 				if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-					// Get file information
+				    // Get file information
 				    $target_dir = "../assets/images/books/";
 				    $file_name = basename($_FILES["file"]["name"]);
-
+				    
 				    $temp = explode(".", $_FILES["file"]["name"]);
-			    	$newfilename = round(microtime(true)) . '.' . end($temp);
-
+				    $newfilename = round(microtime(true)) . '.' . end($temp);
+				    
 				    $target_file = $target_dir . $newfilename;
 				    $uploadOk = true;
 
 				    // Check if image file is a actual image or fake image
-			        $check = getimagesize($_FILES["file"]["tmp_name"]);
-			        if ($check == false) {
-			            $result['error'] = true;
-			            $result['msg'] = 'الملف ليس صورة  .';
-			            $uploadOk = false;
-			            echo json_encode($result);
-						exit();
-			        }
-
-			        // Check if file already exists
-				    /*if (file_exists($target_file)) {
-				        $uploadOk = false;
+				    $check = getimagesize($_FILES["file"]["tmp_name"]);
+				    if ($check == false) {
 				        $result['error'] = true;
-			            $result['msg'] = "Sorry, post image  already exists.";
-			            echo json_encode($result);
-						exit();
-				    }*/
+				        $result['msg'] = $lang['not_image'];
+				        $uploadOk = false;
+				        echo json_encode($result);
+				        exit();
+				    }
 
 				    // Check file size (optional)
 				    if ($_FILES["file"]["size"] > 5000000) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "عذرًا، الملف الخاص بك كبير جدًا  .";
-			            echo json_encode($result);
-						exit();
+				        $result['msg'] = $lang['file_too_large'];
+				        echo json_encode($result);
+				        exit();
 				    }
 
 				    // Allow certain file formats
@@ -175,80 +178,76 @@ if(isset($_GET['action'])) {
 				    if (!in_array($file_extension, $allowed_extensions)) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "عذرًا، يُسمح فقط بملفات JPG وJPEG وPNG وGIF  .";
-			            echo json_encode($result);
-						exit();
+				        $result['msg'] = $lang['invalid_file_format'];
+				        echo json_encode($result);
+				        exit();
 				    }
 
 				    if($uploadOk) {
-				    	$image = $newfilename;
-				    	if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
-			            	$result['error'] = true;
-		            		$result['msg'] = "عذرًا، حدث خطأ أثناء تحميل ملفك  .";
-		            		echo json_encode($result);
-							exit();
-			            }
+				        $image = $newfilename;
+				        if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
+				            $result['error'] = true;
+				            $result['msg'] = $lang['upload_error'];
+				            echo json_encode($result);
+				            exit();
+				        }
 				    } else {
 				        $result['error'] = true;
-	            		$result['msg'] = "عذرا، لم يتم تحميل الملف الخاص بك. لم يتم حفظ الكتاب  ";
-	            		echo json_encode($result);
-	            		exit();
+				        $result['msg'] = $lang['file_not_uploaded'];
+				        echo json_encode($result);
+				        exit();
 				    }
-				} /*else {
-				    $result['error'] = true;
-            		$result['msg'] = "No file uploaded or upload error. Book not saved";
-            		echo json_encode($result);
-            		exit();
-				}*/
+				}
 
 				if($stmt->execute()) {
-                	$result['error'] = false;
-            		$result['msg'] = "تم حفظ الكتاب بنجاح  .";
-		            $result['id'] = $stmt->insert_id;
-                } else {
-                	$result['error'] = true;
-            		$result['msg'] = "حدث خطأ ما في تخزين البيانات  .";
-            		echo json_encode($result);
-					exit();
-                }
+				    $result['error'] = false;
+				    $result['msg'] = $lang['book_saved'];
+				    $result['id'] = $stmt->insert_id;
+				} else {
+				    $result['error'] = true;
+				    $result['msg'] = $lang['data_store_error'];
+				    echo json_encode($result);
+				    exit();
+				}
 			} else if($_GET['save'] == 'customer') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
 				$email = '';
 
-				if(isset($_POST['email'])) $email = $_POST['email'];
+				if (isset($_POST['email'])) $email = $_POST['email'];
 				$name = $_POST['name'];
 				$phone = $_POST['phone'];
 
-				checkAccess('customers', 'create', 'لا يمكن إنشاء عميل. لا امتيازات  ');
+				checkAccess('customers', 'create', $lang['no_privileges_create_customer']);
 
-				// Check if username already exist
-		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `phone_number` = '$phone' AND `membership_status` <> 'deleted'";
-		        $existSet = $GLOBALS['conn']->query($check_exist);
-		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' هذا العميل موجود بالفعل  .';
-		            $result['error'] = true;
-		            $result['errType'] = 'customer';
-		            echo json_encode($result); 
-		            exit();
-		        }
+				// Check if customer already exists
+				$check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `phone_number` = '$phone' AND `membership_status` <> 'deleted'";
+				$existSet = $GLOBALS['conn']->query($check_exist);
+				if ($existSet->num_rows > 0) {
+				    $result['msg'] = $lang['customer_exists'];
+				    $result['error'] = true;
+				    $result['errType'] = 'customer';
+				    echo json_encode($result); 
+				    exit();
+				}
 
-		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `customers` (`name`, `phone_number`, `email`, `added_by`) VALUES (?, ?, ?, ?)");
-		        $stmt->bind_param("ssss", $name, $phone, $email, $myUser);
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' لا يمكن تسجيل العميل  .';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' تم حفظ العميل بنجاح  ';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `customers` (`name`, `phone_number`, `email`, `added_by`) VALUES (?, ?, ?, ?)");
+				$stmt->bind_param("ssss", $name, $phone, $email, $myUser);
+				if (!$stmt->execute()) {
+				    $result['msg'] = $lang['customer_registration_error'];
+				    $result['error'] = true;
+				    $result['errType'] = 'sql';
+				    $result['sqlErr'] = $stmt->error;
+				    echo json_encode($result); 
+				    exit();
+				} else {
+				    $result['msg'] = $lang['customer_saved_success'];
+				    $result['error'] = false;
+				    $result['id'] = $stmt->insert_id;
+				}
 			} else if($_GET['save'] == 'borrow') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
 				$customer_id 	= $_POST['customer_id'];
@@ -256,32 +255,31 @@ if(isset($_GET['action'])) {
 				$borrow_date 	= date('Y-m-d H:i:s');
 				$dueDate 		= $_POST['dueDate'] . date(" H:i:s");
 
-				checkAccess('transactions', 'create', 'Can\'t give a book to a customer. No privileges');
+				checkAccess('transactions', 'create', $lang['no_privileges_give_book']);
 
-				// Check if username already exist
-		        $check_exist = "SELECT * FROM `borrowing` WHERE `customer_id` = '$customer_id' AND `book_isbn` = '$isbn' AND `status` = 'on hold'";
-		        $existSet = $GLOBALS['conn']->query($check_exist);
-		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' This customer already has this book.';
-		            $result['error'] = true;
-		            $result['errType'] = 'borrowing';
-		            echo json_encode($result); 
-		            exit();
-		        }
+				$check_exist = "SELECT * FROM `borrowing` WHERE `customer_id` = '$customer_id' AND `book_isbn` = '$isbn' AND `status` = 'on hold'";
+				$existSet = $GLOBALS['conn']->query($check_exist);
+				if($existSet->num_rows > 0) {
+				    $result['msg'] = $lang['customer_has_book'];
+				    $result['error'] = true;
+				    $result['errType'] = 'borrowing';
+				    echo json_encode($result); 
+				    exit();
+				}
 
-		        $stmt = $GLOBALS['conn']->prepare("INSERT INTO `borrowing` (`customer_id`, `book_isbn`, `borrow_date`, `due_date`, `added_by`) VALUES (?, ?, ?, ?, ?)");
-		        $stmt->bind_param("sssss", $customer_id, $isbn, $borrow_date, $dueDate, $myUser);
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t record transaction.';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' Transaction saved succefully.';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				$stmt = $GLOBALS['conn']->prepare("INSERT INTO `borrowing` (`customer_id`, `book_isbn`, `borrow_date`, `due_date`, `added_by`) VALUES (?, ?, ?, ?, ?)");
+				$stmt->bind_param("sssss", $customer_id, $isbn, $borrow_date, $dueDate, $myUser);
+				if(!$stmt->execute()) {
+				    $result['msg']    = $lang['transaction_record_error'];
+				    $result['error'] = true;
+				    $result['errType']  = 'sql';
+				    $result['sqlErr']   = $stmt->error;
+				    echo json_encode($result); exit();
+				} else {
+				    $result['msg'] = $lang['transaction_saved_successfully'];
+				    $result['error'] = false;
+				    $result['id'] = $stmt->insert_id;
+				}
 			}
 		} else {
 			$result['msg'] = 'Incorrect action';
@@ -356,6 +354,7 @@ if(isset($_GET['action'])) {
 					$result['iTotalRecords'] = 0;
 					$result['iTotalDisplayRecords'] = 0;
 				}
+			
 			} else if($_GET['load'] == 'categories') {
 				$result['status'] = 201;
 				$result['error'] = false;
@@ -408,6 +407,7 @@ if(isset($_GET['action'])) {
 					$result['iTotalDisplayRecords'] = 0;
 				
 				}
+			
 			} else if($_GET['load'] == 'books') {
 				$result['status'] = 201;
 				$result['error'] = false;
@@ -492,6 +492,7 @@ if(isset($_GET['action'])) {
 					$result['iTotalRecords'] = 0;
 					$result['iTotalDisplayRecords'] = 0;
 				}
+			
 			} else if($_GET['load'] == 'customers') {
 				$result['status'] = 201;
 				$result['error'] = false;
@@ -546,6 +547,7 @@ if(isset($_GET['action'])) {
 					$result['iTotalDisplayRecords'] = 0;
 				
 				}
+			
 			} else if($_GET['load'] == 'transactions') {
 				$result['status'] = 201;
 				$result['error'] = false;
@@ -560,7 +562,7 @@ if(isset($_GET['action'])) {
 				}
 
 				$get_transactions = "
-				    SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted')";
+				    SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE BR.`status` NOT IN ('deleted')";
 
 				// Adding search filter if $searchParam is set
 				if ($searchParam) {
@@ -577,7 +579,7 @@ if(isset($_GET['action'])) {
 				} else {
 				    $get_transactions .= " ORDER BY BR.`id` DESC";
 				}
-
+				// echo $get_transactions;
 				$noLimit = $get_transactions;
 				$get_transactions .= " LIMIT $start, ".$length;
 				$allTransactions = $GLOBALS['conn']->query($noLimit);
@@ -625,6 +627,7 @@ if(isset($_GET['action'])) {
 					$result['iTotalRecords'] = 0;
 					$result['iTotalDisplayRecords'] = 0;
 				}
+			
 			}
 		} else {
 			$result['msg'] = 'Incorrect action';
@@ -673,46 +676,48 @@ if(isset($_GET['action'])) {
 		            $result['error'] = false;
 		        }
 			} else if($_GET['update'] == 'category') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
 				$desc = NULL;
 
-				if(isset($_POST['desc'])) $desc = $_POST['desc'];
+				if (isset($_POST['desc'])) $desc = $_POST['desc'];
 				$categoryName = $_POST['categoryName'];
 				$category_id = $_POST['category_id'];
 				$slcCategoryStatus = $_POST['slcCategoryStatus'];
 
-				checkAccess('categories', 'update', 'لا يمكن تحديث الفئة. لا امتيازات  ');
+				checkAccess('categories', 'update', $lang['no_privileges_update_category']);
 
-				if(strtolower($slcCategoryStatus) == 'deleted') {
-					checkAccess('categories', 'delete', 'لا يمكن حذف فئة. لا امتيازات  ');
+				if (strtolower($slcCategoryStatus) == 'deleted') {
+				    checkAccess('categories', 'delete', $lang['no_privileges_delete_category']);
 				}
 
-				// Check if username already exist
-		        $check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted' AND `id` NOT IN ($category_id)";
-		        $existSet = $GLOBALS['conn']->query($check_exist);
-		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' هذه الفئة موجودة بالفعل  .';
-		            $result['error'] = true;
-		            $result['errType'] = 'category';
-		            echo json_encode($result); 
-		            exit();
-		        }
+				// Check if category already exists
+				$check_exist = "SELECT `name` FROM `categories` WHERE `name` = '$categoryName' AND `status` <> 'deleted' AND `id` NOT IN ($category_id)";
+				$existSet = $GLOBALS['conn']->query($check_exist);
+				if ($existSet->num_rows > 0) {
+				    $result['msg'] = $lang['category_exists'];
+				    $result['error'] = true;
+				    $result['errType'] = 'category';
+				    echo json_encode($result); 
+				    exit();
+				}
 
-		        $stmt = $GLOBALS['conn']->prepare("UPDATE `categories` SET `name` =?, `status` =?, `description` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
-		        $stmt->bind_param("ssssss", $categoryName, $slcCategoryStatus, $desc, $updated_date,  $myUser, $category_id);
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' لا يمكن تحديث الفئة  .';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' تم تعديل الفئة بنجاح  ';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				$stmt = $GLOBALS['conn']->prepare("UPDATE `categories` SET `name` =?, `status` =?, `description` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
+				$stmt->bind_param("ssssss", $categoryName, $slcCategoryStatus, $desc, $updated_date, $myUser, $category_id);
+				if (!$stmt->execute()) {
+				    $result['msg'] = $lang['category_update_error'];
+				    $result['error'] = true;
+				    $result['errType'] = 'sql';
+				    $result['sqlErr'] = $stmt->error;
+				    echo json_encode($result); 
+				    exit();
+				} else {
+				    $result['msg'] = $lang['category_updated_success'];
+				    $result['error'] = false;
+				    $result['id'] = $category_id; // Use the category ID here
+				}
+
 			} else if($_GET['update'] == 'book') {
 				$result['msg'] = 'Correct action';
 				$result['status'] = 201;
@@ -730,16 +735,18 @@ if(isset($_GET['action'])) {
 				$part_num 			= $_POST['part_num'];
 				$slcBookStatus 		= $_POST['slcBookStatus'];
 
-				checkAccess('books', 'update', 'لا يمكن تحديث كتاب. لا امتيازات  ');
+				// checkAccess('books', 'update', 'لا يمكن تحديث كتاب. لا امتيازات  ');
+				checkAccess('books', 'update', $lang['no_privileges_for_book_edit']);
 
 				if(strtolower($slcBookStatus) == 'deleted') {
-					checkAccess('books', 'delete', 'لا يمكن حذف كتاب. لا امتيازات  ');
+					// checkAccess('books', 'delete', 'لا يمكن حذف كتاب. لا امتيازات  ');
+					checkAccess('books', 'update', $lang['no_privileges_for_book_delete']);
 				}
 
 				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `book_id` <> '$book_id'");
 				if($check_exist->num_rows > 0) {
 					$result['error'] = true;
-            		$result['msg'] = "رقم ISBN موجود بالفعل  .";
+            		$result['msg'] = $lang['isbn_exists'];
             		echo json_encode($result);
 					exit();
 				}
@@ -749,14 +756,15 @@ if(isset($_GET['action'])) {
 				
 				if($stmt->execute()) {
                 	$result['error'] = false;
-            		$result['msg'] = "تم تحرير الكتاب بنجاح.";
+            		$result['msg'] = $lang['book_editted'];
 		            $result['id'] = $stmt->insert_id;
                 } else {
                 	$result['error'] = true;
-            		$result['msg'] = "حدث خطأ ما في تخزين البيانات.";
+            		$result['msg'] = $lang['data_update_error'];
             		echo json_encode($result);
 					exit();
                 }	
+			
 			} else if($_GET['update'] == 'bookStatus') {
 				$result['msg'] = 'Correct action';
 				$result['status'] = 201;
@@ -764,31 +772,34 @@ if(isset($_GET['action'])) {
 				$status = $_POST['status'];
 				$book_id = $_POST['book_id'];
 
-				checkAccess('books', 'update', 'Can\'t change a book status. No privileges');
+				// checkAccess('books', 'update', 'لا يمكن تحديث كتاب. لا امتيازات  ');
+				checkAccess('books', 'update', $lang['no_privileges_for_book_edit']);
 
 				if(strtolower($status) == 'deleted') {
-					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+					// checkAccess('books', 'delete', 'لا يمكن حذف كتاب. لا امتيازات  ');
+					checkAccess('books', 'delete', $lang['no_privileges_for_book_delete']);
 				}
 
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `status` =?, `updated_date` =?, `updated_by` =? WHERE `book_id` = ?");
 		        $stmt->bind_param("ssss", $status, $updated_date,  $myUser, $book_id);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t update category.';
+		            $result['msg']    = $lang['data_update_error'];
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Book status changed succefully.';
+		        	$result['msg'] = $lang['book_status_changed'];
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
+			
 			} else if($_GET['update'] == 'bookCover') {
 				$result['msg'] = 'Correct action';
 				$result['status'] = 201;
 
-				checkAccess('books', 'update', 'Can\'t change a book cover. No privileges');
-				
+				// checkAccess('books', 'update', 'Can\'t change a book cover. No privileges');
+				checkAccess('books', 'update', $lang['no_privileges_for_book_edit']);
 				
 
 				$image = '';
@@ -810,7 +821,7 @@ if(isset($_GET['action'])) {
 			        $check = getimagesize($_FILES["file"]["tmp_name"]);
 			        if ($check == false) {
 			            $result['error'] = true;
-			            $result['msg'] = 'File is not an image.';
+			            $result['msg'] = $lang['not_image'];
 			            $uploadOk = false;
 			            echo json_encode($result);
 						exit();
@@ -820,7 +831,7 @@ if(isset($_GET['action'])) {
 				    if ($_FILES["file"]["size"] > 5000000) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "Sorry, your file is too large.";
+			            $result['msg'] = $lang['file_too_large'];
 			            echo json_encode($result);
 						exit();
 				    }
@@ -831,7 +842,7 @@ if(isset($_GET['action'])) {
 				    if (!in_array($file_extension, $allowed_extensions)) {
 				        $uploadOk = false;
 				        $result['error'] = true;
-			            $result['msg'] = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+			            $result['msg'] = $lang['invalid_file_format'];
 			            echo json_encode($result);
 						exit();
 				    }
@@ -840,108 +851,113 @@ if(isset($_GET['action'])) {
 				    	$image = $newfilename;
 				    	if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
 			            	$result['error'] = true;
-		            		$result['msg'] = "Sorry, there was an error uploading your file.";
+		            		$result['msg'] = $lang['upload_error']; 
 		            		echo json_encode($result);
 							exit();
 			            }
 				    } else {
 				        $result['error'] = true;
-	            		$result['msg'] = "Sorry, your file was not uploaded. Book cover not changed";
+	            		$result['msg'] = $lang['file_not_uploaded']; 
 	            		echo json_encode($result);
 	            		exit();
 				    }
 				} else {
-					checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+					// checkAccess('books', 'delete', 'Can\'t delete a book. No privileges');
+					checkAccess('books', 'delete', $lang['no_privileges_for_book_delete']);
 				}
 
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `books` SET `cover_image` =?, `updated_date` =?, `updated_by` =? WHERE `book_id` = ?");
 		        $stmt->bind_param("ssss", $image, $updated_date,  $myUser, $book_id);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t update book cover.';
+		            $result['msg']    = $lang['cover_not_changed'];
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Book cover changed succefully.';
+		        	$result['msg'] = $lang['cover_changed'];
 		            $result['error'] = false;
 		            $result['id'] = $stmt->insert_id;
 		        }
+			
 			} else if($_GET['update'] == 'customer') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
-				$name 	= $_POST['name'];
-				$phone 	= $_POST['phone'];
-				$email 	= $_POST['email'];
-				$id 	= $_POST['id'];
+				$name = $_POST['name'];
+				$phone = $_POST['phone'];
+				$email = $_POST['email'];
+				$id = $_POST['id'];
 				$status = $_POST['status'];
 
-				checkAccess('customers', 'update', 'لا يمكن تحديث العميل. لا امتيازات  ');
+				checkAccess('customers', 'update', $lang['no_privileges_update_customer']);
 
-				if(strtolower($status) == 'deleted') {
-					checkAccess('customers', 'delete', 'لا يمكن حذف العميل. لا امتيازات  ');
+				if (strtolower($status) == 'deleted') {
+				    checkAccess('customers', 'delete', $lang['no_privileges_delete_customer']);
 				}
 
-				// Check if username already exist
-		        $check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `membership_status` <> 'deleted' AND `id` NOT IN ($id)";
-		        $existSet = $GLOBALS['conn']->query($check_exist);
-		        if($existSet->num_rows > 0) {
-		            $result['msg'] = ' هذا العميل موجود بالفعل  .';
-		            $result['error'] = true;
-		            $result['errType'] = 'customer';
-		            echo json_encode($result); 
-		            exit();
-		        }
+				// Check if username already exists
+				$check_exist = "SELECT `name` FROM `customers` WHERE `name` = '$name' AND `membership_status` <> 'deleted' AND `id` NOT IN ($id)";
+				$existSet = $GLOBALS['conn']->query($check_exist);
+				if ($existSet->num_rows > 0) {
+				    $result['msg'] = $lang['customer_exists'];
+				    $result['error'] = true;
+				    $result['errType'] = 'customer';
+				    echo json_encode($result); 
+				    exit();
+				}
 
-		        $stmt = $GLOBALS['conn']->prepare("UPDATE `customers` SET `name` =?, `phone_number` =?, `email` =?, `membership_status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
-		        $stmt->bind_param("sssssss", $name, $phone, $email, $status, $updated_date, $myUser, $id);
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' لا يمكن تحديث العميل  .';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' تم تحرير العميل بنجاح  .';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				$stmt = $GLOBALS['conn']->prepare("UPDATE `customers` SET `name` =?, `phone_number` =?, `email` =?, `membership_status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
+				$stmt->bind_param("sssssss", $name, $phone, $email, $status, $updated_date, $myUser, $id);
+				if (!$stmt->execute()) {
+				    $result['msg'] = $lang['customer_update_error'];
+				    $result['error'] = true;
+				    $result['errType'] = 'sql';
+				    $result['sqlErr'] = $stmt->error;
+				    echo json_encode($result); exit();
+				} else {
+				    $result['msg'] = $lang['customer_updated_success'];
+				    $result['error'] = false;
+				    $result['id'] = $stmt->insert_id;
+				}
+
 			} else if($_GET['update'] == 'borrowing') {
-				$result['msg'] = 'Correct action';
+				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
 
-				$date 	= $_POST['date'] . date(" H:i:s");
+				$date = $_POST['date'] . date(" H:i:s");
 				$status = $_POST['status'];
-				$id 	= $_POST['id'];
+				$id = $_POST['id'];
 
-				checkAccess('transactions', 'update', 'Can\'t update a transaction. No privileges');
+				checkAccess('transactions', 'update', $lang['no_privileges_update_transaction']);
 
-				if(strtolower($status) == 'deleted') {
-					checkAccess('transactions', 'delete', 'Can\'t delete a transaction. No privileges');
+				if (strtolower($status) == 'deleted') {
+				    checkAccess('transactions', 'delete', $lang['no_privileges_delete_transaction']);
 				}
 
-		        if($status != 'returned') {
-		        	$stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
-		        	$stmt->bind_param("ssss", $status, $updated_date, $myUser, $id);
-		        } else {
-		        	$stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `return_date` =?, `updated_date` =?, `returned_by` =? WHERE `id` = ?");
-		        	$stmt->bind_param("sssss", $status, $date, $updated_date, $myUser, $id);
-		        }
-		        
-		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t update Transaction.';
-		            $result['error'] = true;
-		            $result['errType']  = 'sql';
-		            $result['sqlErr']   = $stmt->error;
-		            echo json_encode($result); exit();
-		        } else {
-		        	$result['msg'] = ' Transaction status changed succefully.';
-		            $result['error'] = false;
-		            $result['id'] = $stmt->insert_id;
-		        }
+				if ($status != 'returned') {
+				    $stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `updated_date` =?, `updated_by` =? WHERE `id` = ?");
+				    $stmt->bind_param("ssss", $status, $updated_date, $myUser, $id);
+				} else {
+				    $stmt = $GLOBALS['conn']->prepare("UPDATE `borrowing` SET `status` =?, `return_date` =?, `updated_date` =?, `returned_by` =? WHERE `id` = ?");
+				    $stmt->bind_param("sssss", $status, $date, $updated_date, $myUser, $id);
+				}
+
+				if (!$stmt->execute()) {
+				    $result['msg'] = $lang['transaction_update_error'];
+				    $result['error'] = true;
+				    $result['errType'] = 'sql';
+				    $result['sqlErr'] = $stmt->error;
+				    echo json_encode($result); exit();
+				} else {
+				    $result['msg'] = $lang['transaction_status_changed_successfully'];
+				    $result['error'] = false;
+				    $result['id'] = $stmt->insert_id;
+				}
+
 			} else {
 				$result['msg'] = 'Incorrect action';
+			
 			}
 		} else {
 			$result['msg'] = 'Incorrect action';
@@ -998,29 +1014,29 @@ if(isset($_GET['action'])) {
 		    $customerSet = $GLOBALS['conn']->query($get_customer);
 		    if($customerSet->num_rows > 0) {
 			    while($row = $customerSet->fetch_assoc()) {
-			    	$id 			= $row['id'];
-			    	$phone_number 	= $row['phone_number'];
-			    	$name 			= $row['name'];
-			    	$email 			= $row['email'];
+			        $id             = $row['id'];
+			        $phone_number   = $row['phone_number'];
+			        $name           = $row['name'];
+			        $email          = $row['email'];
 
-			    	if($forReport == 'Yes') {
-			    		$options .= '<option value="'.$id.'">'.$name.', '.$phone_number.'</option>';
-			    		$response['error'] = false;
-			    	} else {
-			    		$result .= '<div onclick="return catchCustomer(\'' . $id . '\', \'' . $name . '\', \'' . $phone_number . '\');" class="result-item">
-		            		<p class="">
-		            			<span class="title bold">Name:</span>
-		            			<span class="val">'.$name.'</span>
-		            		</p>
-		            		<p class="">
-		            			<span class="title bold">Phone:</span>
-		            			<span class="val">'.$phone_number.'</span>
-		            		</p>
-		            	</div>';
-			    	}
+			        if($forReport == 'Yes') {
+			            $options .= '<option value="'.$id.'">'.$name.', '.$phone_number.'</option>';
+			            $response['error'] = false;
+			        } else {
+			            $result .= '<div onclick="return catchCustomer(\'' . $id . '\', \'' . $name . '\', \'' . $phone_number . '\');" class="result-item">
+			                <p class="">
+			                    <span class="title bold">'.$lang['name'].':</span>
+			                    <span class="val">'.$name.'</span>
+			                </p>
+			                <p class="">
+			                    <span class="title bold">'.$lang['phone'].':</span>
+			                    <span class="val">'.$phone_number.'</span>
+			                </p>
+			            </div>';
+			        }
 			    }
 			} else {
-				$result = '<p class="empty-result">No customers found</p>';
+			    $result = '<p class="empty-result">'.$lang['no_customers_found'].'</p>';
 			}
 			if($forReport == 'Yes') {
 				$response['options'] = $options;
@@ -1051,15 +1067,15 @@ if(isset($_GET['action'])) {
 			    	} else {
 			    		$result .= '<div onclick="return catchBook(\'' . $id . '\', \'' . $isbn . '\', \'' . $title . '\', \'' . $author . '\');" class="result-item">
 		            		<p class="">
-		            			<span class="title bold">ISBN:</span>
+		            			<span class="title bold">'.$lang['isbn'].':</span>
 		            			<span class="val">'.$isbn.'</span>
 		            		</p>
 		            		<p class="">
-		            			<span class="title bold">Title:</span>
+		            			<span class="title bold">'.$lang['title'].':</span>
 		            			<span class="val">'.$title.'</span>
 		            		</p>
 		            		<p class="">
-		            			<span class="title bold">Author:</span>
+		            			<span class="title bold">'.$lang['author'].':</span>
 		            			<span class="val">'.$author.'</span>
 		            		</p>
 		            	</div>';
@@ -1067,7 +1083,7 @@ if(isset($_GET['action'])) {
 			    	
 			    }
 			} else {
-				$result = '<p class="empty-result">No customers found</p>';
+				$result = '<p class="empty-result">'.$lang['no_books_found'].'</p>';
 			}
 		    if($forReport == 'Yes') {
 				$response['options'] = $options;
@@ -1165,7 +1181,7 @@ if(isset($_GET['action'])) {
 						$added_date 	= new dateTime($row['added_date']);
 
 						$statusTxt = ucwords($status);
-						if(strtolower($status) == 'active') $statusTxt = 'Available';
+						if(strtolower($status) == 'active') $statusTxt = $lang['available'];
 
 						$added_date = $added_date->format('F d, Y');
 						$category = $row['name'];
@@ -1179,7 +1195,7 @@ if(isset($_GET['action'])) {
 
 				} else {
 					// $result['error'] = true;
-					$result['msg'] = "No records found";
+					$result['msg'] 		= $lang['no_books_found'];
 					$result['data']  	= $dataset;
 					$result['draw'] 	= $draw;
 					$result['iTotalRecords'] = 0;

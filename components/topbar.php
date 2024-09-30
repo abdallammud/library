@@ -72,6 +72,9 @@
             </div>
         </div> -->
 
+        <div class="app-header-menu-item toggle-system-language" data-language="<?php echo $_SESSION['language'] ? $_SESSION['language'] : 'en'; ?>">
+            <i class="bi icon darkmode-toggler bi-translate"></i>
+        </div>
 
         <div class="app-header-menu-item toggle-system-color" data-color="dark">
             <i class="bi icon darkmode-toggler bi-moon"></i>

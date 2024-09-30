@@ -1,9 +1,14 @@
-<div class="lds-ripple loading-page">
+        <div class="lds-ripple loading-page">
             <section>
                 <div></div>
                 <div></div>
             </section>
         </div>
+
+        <script type="text/javascript">
+            const lang = JSON.parse(`<?php echo json_encode($lang);?>`)
+            console.log(lang) 
+        </script>
 
         <script src="<?=BASE_URI;?>/assets/dist/jquery-3.7.0.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>

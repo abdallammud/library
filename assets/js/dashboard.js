@@ -50,34 +50,56 @@ function loadTransactions4Dashboard() {
         "serverMethod": 'post',
         "ajax": {
             "url": "./incs/dashboard.php?action=get&get=overdue-trans",
-            "method":"POST",
-            /*dataFilter: function(data) {
-             console.log(data)
-            }*/
-        }, 
+            "method": "POST",
+        },
+        "drawCallback": function(settings) {
+            var api = this.api();
+            var emptyRow = $(api.table().body()).find('.dataTables_empty');
+            if (emptyRow.length > 0) {
+                emptyRow.html(lang.no_books_found); // Use the language object
+            }
+
+            var label = $('#overdueBooksTable_filter label');
+            label.contents().filter(function() {
+                return this.nodeType === Node.TEXT_NODE;
+            }).replaceWith(lang.search); // Use the language object
+
+            var label = $('#overdueBooksTable_length label');
+            var children = label.contents();
+            children.each(function() {
+                if (this.nodeType === Node.TEXT_NODE) {
+                    if ($(this).text().trim() === 'Show') {
+                        $(this).replaceWith(lang.show); // Use the language object
+                    } else if ($(this).text().trim() === 'entries') {
+                        $(this).replaceWith(lang.entries); // Use the language object
+                    }
+                }
+            });
+
+            $('#overdueBooksTable_previous a').text(lang.previous); // Use the language object
+            $('#overdueBooksTable_next a').text(lang.next); // Use the language object
+        },
         columns: [
-            {title: "Customer", data: null, render: function(data, type, row) {
+            {title: lang.customer, data: null, render: function(data, type, row) {
                 return `<div class="flex center-items">
-                        <span>${row.customer}, ${row.phone_number}</span>
-                    </div>`;
+                            <span>${row.customer}, ${row.phone_number}</span>
+                        </div>`;
             }},
 
-            {title: "Book", data: null, render: function(data, type, row) {
+            {title: lang.book, data: null, render: function(data, type, row) {
                 return `<div>${row.title}, ${row.isbn}</div>`;
             }},
 
-            {title: "Borrow Date", data: null, render: function(data, type, row) {
+            {title: lang.borrow_date, data: null, render: function(data, type, row) {
                 return `<div>${row.borrow_date}</div>`;
             }},
 
-
-            {title: "Due Date", data: null, render: function(data, type, row) {
+            {title: lang.due_date, data: null, render: function(data, type, row) {
                 return `<div>${row.due_date}</div>`;
-            }},
-
-        ]
-    })
-    return false;   
+        }},
+    ]
+});
+return false;
 }
 
 function get_dashboard() {

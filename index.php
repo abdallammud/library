@@ -1,5 +1,8 @@
     <?php require('./components/header.php'); ?>
-    <?php if(!$_SESSION['isLogged']) header("Location: ./login"); ?>
+    <?php 
+    if(!$_SESSION['isLogged']) header("Location: ./login"); 
+    
+    ?>
         <main class="app flex ">
             <?php require('./components/topbar.php'); ?>
 

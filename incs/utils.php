@@ -26,6 +26,7 @@ if(isset($_GET['action'])) {
 	        $status     = $row['status'];
 	        $role     	= $row['role'];
 	        $full_name  = $row['full_name'];
+	        $language  	= $row['language'];
 
 	        $user_actions     = $row['user_actions'];
 	        $user_privileges  = $row['user_privileges'];
@@ -47,7 +48,7 @@ if(isset($_GET['action'])) {
 	        }
 	    }
 
-	    if(set_sessions($username, $user_actions, $user_privileges, $role, $full_name, $user_id)) {
+	    if(set_sessions($username, $user_actions, $user_privileges, $role, $full_name, $user_id, $language)) {
 	        setLoginInfo($user_id);
 	    } else {
 	        $result['msg']    = ' Couln\'t set sessions.';
@@ -62,6 +63,37 @@ if(isset($_GET['action'])) {
 	    $result['privilegs'] = strtolower($user_privileges);
 	    echo json_encode($result); exit(); 
 
+	} else if($_GET['action'] == 'language') {
+		$user_id = $_SESSION['user_id'];
+		$lang = $_POST['lang'];
+		$stmt = $GLOBALS['conn']->prepare("UPDATE `users` SET `language` =? WHERE `user_id` = ?");
+    	$stmt->bind_param("ss", $lang, $user_id);
+    	if($stmt->execute()) {
+    		$getUser = "SELECT * FROM `users` WHERE `user_id` = '$user_id'";
+		    $userSet = $GLOBALS['conn']->query($getUser);
+		    while($row = $userSet->fetch_assoc()) {
+		        $user_id    = $row['user_id'];
+		        $username   = $row['username'];
+		        $passDB     = $row['password'];
+		        $status     = $row['status'];
+		        $role     	= $row['role'];
+		        $full_name  = $row['full_name'];
+		        $language  	= $row['language'];
+
+		        $user_actions     = $row['user_actions'];
+		        $user_privileges  = $row['user_privileges'];
+		    }
+
+		    if(set_sessions($username, $user_actions, $user_privileges, $role, $full_name, $user_id, $language)) {
+		        setLoginInfo($user_id);
+		    } else {
+		        $result['msg']    = ' Couln\'t set sessions.';
+		        $result['error'] = true;
+		        $result['errType']  = 'sessions';
+		        echo json_encode($result); exit();
+		    }
+    		echo 'changed';
+    	} else {echo $stmt->error;}
 	}
 }
 
@@ -134,6 +166,7 @@ if(isset($_GET['action'])) {
 }*/
 
 function load() {
+	global $lang;
     // Check if 'menu' is set in GET parameters
     if (isset($_GET['menu'])) {
         $menu = $_GET['menu'];
@@ -231,11 +264,12 @@ function load() {
 }
 
 
-function set_sessions($username, $actions, $privileges, $role = 'user', $fullName = '', $user_id = '') {
+function set_sessions($username, $actions, $privileges, $role = 'user', $fullName = '', $user_id = '', $language = 'en') {
 	$_SESSION['role'] = $role;
 	$_SESSION['myUser'] = $username;
 	$_SESSION['fullName'] = $fullName;
 	$_SESSION['user_id'] = $user_id;
+	$_SESSION['language'] = $language;
 	$_SESSION['isLogged'] = true;
 
 	$actions 	= explode(",", $actions);
@@ -285,6 +319,7 @@ function reload() {
         $status     = $row['status'];
         $role     	= $row['role'];
         $full_name  = $row['full_name'];
+        $language  = $row['language'];
         $user_actions  		= $row['user_actions'];
         $user_privileges  	= $row['user_privileges'];
     }
@@ -294,7 +329,7 @@ function reload() {
     	return;
     }
 
-    set_sessions($username, $user_actions, $user_privileges, $role, $full_name, $user_id); 
+    set_sessions($username, $user_actions, $user_privileges, $role, $full_name, $user_id, $language); 
 }
 
 function setLoginInfo($userID, $logout = false) {

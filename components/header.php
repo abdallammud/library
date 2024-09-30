@@ -1,6 +1,13 @@
 <?php require('./incs/init.php'); ?>
 <?php 
     reload(); 
+    if($_SESSION['language'] == 'ar') {
+        require('./lang/ar.php');
+    } else {
+        require('./lang/en.php');
+    }
+
+    global $lang;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +15,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Library Management system</title>
+        <title><?=$lang['system_title'];?></title>
         <!-- <base href="> -->
         <link rel="shortcut icon" href="<?=BASE_URI;?>/assets/images/icon.png">
         <link rel="stylesheet" href="<?=BASE_URI;?>/assets/dist/bootstrap/css/bootstrap.min.css">

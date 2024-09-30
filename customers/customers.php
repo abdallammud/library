@@ -1,10 +1,10 @@
 <div class="page-content">
 
 	<p class="data-table-heading center-items flex space-bw mr-b-20 mr-t-10 mfs-8 bold">
-		<span>جميع العملاء  </span>
-		<button type="button" data-bs-toggle="modal" data-bs-target="#addCustomer" class="mbtn cursor primary">إضافة العميل  </button>
+		<span><?=$lang['all_customers'];?></span>
+		<button type="button" data-bs-toggle="modal" data-bs-target="#addCustomer" class="mbtn cursor primary"><?=$lang['add_customer'];?></button>
 	</p>
-	<table style="width: 100%;" class="table mfs-8  mcon mfs-9 table-striped " id="customersTable"></table>
+	<table style="width: 100%;" class="table mfs-8 mcon mfs-9 table-striped" id="customersTable"></table>
 </div>
 <?php require('customer_dp.php'); ?>
 <script>
