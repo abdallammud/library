@@ -109,6 +109,35 @@
     </div>
 </div>
 
+<div class="modal fade" data-bs-focus="false" id="uploadCSVModal" tabindex="-1" role="dialog" aria-labelledby="uploadCSVModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="Upload" style="max-width:400px;">
+        <form id="uploadCSVForm" onsubmit="return submitCSV(this);">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBookLabel"><?= $lang['upload_book']; ?></h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="csvFile" class="form-label"><?=$lang['select_csv_file'];?></label>
+                <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+              </div>
+              <a href="./assets/books-upload-sample.csv" class="btn btn-link" download><?=$lang['download_sample']; ?></a>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?=$lang['close'] ;?></button>
+              <button type="submit" class="btn btn-primary">
+                <span class="text"><?=$lang['upload']; ?></span>
+                <span class="loader d-none"></span>
+              </button>
+            </div>
+          </div>
+        </form>
+    </div>
+</div>
+
 <script>
     // Your JavaScript functions here
 </script>

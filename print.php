@@ -1,11 +1,18 @@
 <?php 
 // require("./assets/fpdf186/fpdf.php");
 // require("./assets/fpdf186/barcode/FpdfBarcode.php");
-require("./assets/fpdf186/phpqrcode/qrlib.php");
-require('./assets/fpdf186/code128.php');
+// require("./assets/fpdf186/phpqrcode/qrlib.php");
+// require('./assets/fpdf186/code128.php');
 
+require('./assets/tcpdf/tcpdf.php');
 require('./incs/config.php');
 require('./incs/utils.php');
+
+if($_SESSION['language'] == 'ar') {
+    require('./lang/ar.php');
+} else {
+    require('./lang/en.php');
+}
 
 reload(); 
 if(isset($_GET['report'])) {

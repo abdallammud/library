@@ -28,7 +28,7 @@ if(isset($_GET['action'])) {
 	if($_GET['action'] == 'save') {
 		if(isset($_GET['save'])) {
 			if($_GET['save'] == 'employee') {
-				$result['msg'] = 'Employee saved succefully';
+				$result['msg'] = $lang['employee_saved_success'];
 				$result['status'] = 201;
 
 				$fullName 	= $_POST['fullName'];
@@ -46,13 +46,13 @@ if(isset($_GET['action'])) {
 				$actions 	= rtrim(implode(",", $userActions), ',');
 				$privileges = rtrim(implode(",", $userPrivileges), ',');
 
-				checkAccess('users', 'create', 'Can\'t create a user. No privileges');
+				checkAccess('users', 'create', $lang['no_privileges_for_user_create']);
 
 				// Check if username already exist
 		        $checkUser = "SELECT `username` FROM `users` WHERE `username` = '$username' AND `status` <> 'deleted'";
 		        $userSet = $GLOBALS['conn']->query($checkUser);
 		        if($userSet->num_rows > 0) {
-		            $result['msg'] = ' Username name already exists. Please select differnt username.';
+		            $result['msg'] = $lang['user_already_exists'];
 		            $result['error'] = true;
 		            $result['errType'] = 'username';
 		            echo json_encode($result); 
@@ -62,13 +62,13 @@ if(isset($_GET['action'])) {
 		         $stmt = $GLOBALS['conn']->prepare("INSERT INTO `users` (`full_name`, `phone`, `email`, `username`, `password`, `role`, `user_actions`, `user_privileges`, `reg_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 		        $stmt->bind_param("sssssssss", $fullName, $phone, $email, $username, $password, $slcRole, $actions, $privileges, $myUser);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t record username.';
+		            $result['msg'] = $lang['user_create_error'];
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' User saved succefully.';
+		        	$result['msg'] = $lang['employee_saved_success'];
 		            $result['error'] = false;
 		        }
 			} else if($_GET['save'] == 'category') {
@@ -112,8 +112,9 @@ if(isset($_GET['action'])) {
 				$result['status'] = 201;
 				$result['error'] = false;
 
+				$isbn = '';
 				$bookTitle = $_POST['bookTitle'];
-				$isbn = $_POST['isbn'];
+				if(isset($_POST['isbn'])) $isbn = $_POST['isbn'];
 				$authorName = $_POST['authorName'];
 				$publisher = $_POST['publisher'];
 				$published_year = $_POST['published_year'];
@@ -126,7 +127,7 @@ if(isset($_GET['action'])) {
 				// checkAccess('books', 'create', 'Can\'t create a book. No privileges');
 				checkAccess('books', 'create', $lang['no_privileges_for_book_create']);
 
-				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted'");
+				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `title` = '$bookTitle'");
 				if($check_exist->num_rows > 0) {
 				    $result['error'] = true;
 				    $result['msg'] = $lang['isbn_exists'];
@@ -280,7 +281,93 @@ if(isset($_GET['action'])) {
 				    $result['error'] = false;
 				    $result['id'] = $stmt->insert_id;
 				}
+			} else if ($_GET['save'] == 'upload_csv') {
+			    $result['msg'] = $lang['correct_action'];
+			    $result['status'] = 201;
+			    $result['error'] = false;
+
+			    checkAccess('books', 'create', $lang['no_privileges_for_book_create']);
+				
+			    // Check if a file was uploaded
+			    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+			        $fileTmpPath = $_FILES['file']['tmp_name'];
+			        $fileName = $_FILES['file']['name'];
+			        $fileSize = $_FILES['file']['size'];
+			        $fileType = $_FILES['file']['type'];
+			        
+			        // Check file type and size
+			        if ($fileType != 'text/csv' || $fileSize > 5000000) { // Adjust max size as needed
+			            $result['error'] = true;
+			            $result['msg'] = $lang['invalid_file'];
+			            echo json_encode($result);
+			            exit();
+			        }
+
+			        // Read CSV file
+			        $file = fopen($fileTmpPath, 'r');
+			        if ($file) {
+			        	$row = 0;
+			            while (($line = fgetcsv($file)) !== FALSE) {
+			               	$row++;
+        					if($row == 1) continue;
+
+			                list($bookTitle, $isbn, $authorName, $publisher, $published_year, $slcBookCategory, $copies, $parts, $part) = $line;
+
+			                // Check if the book already exists, etc.
+			               
+			                $check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `title` = '$bookTitle'");
+							if($check_exist->num_rows > 0) {
+							    $result['error'] = true;
+							    $result['msg'] = $lang['isbn_exists'];
+							    echo json_encode($result);
+							    exit();
+							}
+
+			                $checl_category = "SELECT * FROM `categories` WHERE `name` = '$slcBookCategory'";
+			                $categorySet = $GLOBALS['conn']->query($checl_category);
+
+			                if($categorySet->num_rows > 0) {
+			                	$category_id = $categorySet->fetch_assoc()['id'];
+			                } else {
+			                	$desc = '';
+			                	$stmt = $GLOBALS['conn']->prepare("INSERT INTO `categories` (`name`, `description`, `added_by`) VALUES (?, ?, ?)");
+								$stmt->bind_param("sss", $slcBookCategory, $desc, $myUser);
+								if ($stmt->execute()) {
+								   $category_id = $stmt->insert_id;
+								} else {
+									$category_id = 0;
+								}
+			                }
+
+			                // Perform your database insertion logic here
+			               	$image = '';
+
+							$stmt = $GLOBALS['conn']->prepare("INSERT INTO `books` (`title`, `cover_image`, `isbn`, `author`, `publisher`, `published_year`, `status`, `category_id`, `number_of_copies`, `parts`, `part_num`, `added_by`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+							$stmt->bind_param("ssssssssssss", $bookTitle, $image, $isbn, $authorName, $publisher, $published_year, $status, $category_id, $copies, $parts, $part, $myUser);
+							$status = 'active';
+			                
+			                if (!$stmt->execute()) {
+			                    $result['error'] = true;
+			                    $result['msg'] = $lang['data_store_error'];
+			                    echo json_encode($result);
+			                    exit();
+			                }
+			            }
+			            fclose($file);
+			            $result['msg'] = $lang['books_uploaded'];
+			        } else {
+			            $result['error'] = true;
+			            $result['msg'] = $lang['file_read_error'];
+			        }
+			    } else {
+			        $result['error'] = true;
+			        $result['msg'] = $lang['upload_error'];
+			    }
+
+			    echo json_encode($result);
+			    exit();
 			}
+
 		} else {
 			$result['msg'] = 'Incorrect action';
 		}
@@ -656,25 +743,26 @@ if(isset($_GET['action'])) {
 				$actions 	= rtrim(implode(",", $userActions), ',');
 				$privileges = rtrim(implode(",", $userPrivileges), ',');
 
-				checkAccess('users', 'update', 'Can\'t update a user. No privileges');
+				checkAccess('users', 'update', $lang['no_privileges_for_user_update']);
 
 				if(strtolower($slcStatus) == 'deleted') {
-					checkAccess('users', 'delete', 'Can\'t delete a user. No privileges');
+					checkAccess('users', 'delete', $lang['no_privileges_for_user_delete']);
 				}
 
 				$updated_date = date('Y-m-d h:i:s');
 		        $stmt = $GLOBALS['conn']->prepare("UPDATE `users` SET `full_name` =?, `phone` = ?, `email` = ?,  `role` = ?, `user_actions` =?, `user_privileges` =?,  `status` = ?, `updated_date` = ?, `updated_by` = ? WHERE `user_id` = ?");
 		        $stmt->bind_param("ssssssssss", $fullName, $phone, $email,  $slcRole, $actions, $privileges, $slcStatus, $updated_date,  $myUser, $user_id);
 		        if(!$stmt->execute()) {
-		            $result['msg']    = ' Couln\'t edit employee details.';
+		            $result['msg'] = $lang['user_edit_error'];
 		            $result['error'] = true;
 		            $result['errType']  = 'sql';
 		            $result['sqlErr']   = $stmt->error;
 		            echo json_encode($result); exit();
 		        } else {
-		        	$result['msg'] = ' Employee editted succefully.';
+		        	$result['msg'] = $lang['user_edit_success'];
 		            $result['error'] = false;
 		        }
+			
 			} else if($_GET['update'] == 'category') {
 				$result['msg'] = $lang['correct_action'];
 				$result['status'] = 201;
@@ -723,9 +811,11 @@ if(isset($_GET['action'])) {
 				$result['status'] = 201;
 				$result['error'] = false;
 
+				$isbn = '';
 				$book_id 		= $_POST['book_id'];
 				$bookTitle 		= $_POST['bookTitle'];
-				$isbn 			= $_POST['isbn'];
+				if(isset($_POST['isbn'])) $isbn = $_POST['isbn'];
+
 				$authorName 	= $_POST['authorName'];
 				$publisher 		= $_POST['publisher'];
 				$published_year = $_POST['published_year'];
@@ -743,7 +833,7 @@ if(isset($_GET['action'])) {
 					checkAccess('books', 'update', $lang['no_privileges_for_book_delete']);
 				}
 
-				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `book_id` <> '$book_id'");
+				$check_exist = $GLOBALS['conn']->query("SELECT * FROM `books` WHERE `isbn` = '$isbn' AND `status` <> 'deleted' AND `book_id` <> '$book_id' AND `title` = '$bookTitle'");
 				if($check_exist->num_rows > 0) {
 					$result['error'] = true;
             		$result['msg'] = $lang['isbn_exists'];

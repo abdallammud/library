@@ -47,6 +47,15 @@ a {
 .app-header .brand {
 	padding: 0px 15px;
 }
+.ltr .app-header .brand {
+	order: 2;
+	justify-content: flex-end;
+}
+.ltr .app-header .brand a {
+	order: -1;
+    justify-content: flex-end;
+    display: flex;
+}
 .app-header .brand img {
 	width: 150px;
 	height: 80%;
@@ -100,6 +109,9 @@ a {
     border-start-end-radius: 0.375rem;
 
 	display: none;
+}
+.ltr .app-header-dd {
+	left: 0%;
 }
 .app-header-dd#user-profile {
 	width: 15rem;
@@ -194,6 +206,7 @@ body.dark .app-header-dd ul li:hover {
 }
 .sidebar ul li {
 	padding: var(--sidebar-li-padding);
+	list-style: none;
 }
 .sidebar ul li a {
 	padding: var(--sidebar-nav-item-padding);
@@ -268,6 +281,23 @@ body.dark .app-header-dd ul li:hover {
 	z-index: 9;
 	align-items: center;
 	border-radius: 3px;;
+}
+
+.ltr .sidebar {
+	right: 0;
+}
+.ltr .sidebar ul li a span {
+	text-align: right;
+}
+.ltr .sidebar.minified ul li a:hover span {
+	right: 95%;
+	padding-left: 15px;
+	left: auto;
+}
+ 
+.ltr .app-content {
+	margin-left: 0;
+	margin-right: var(--sidebar-width);
 }
 
 

@@ -40,4 +40,4 @@
         <!-- <link rel="icon" href="<?=BASE_URI;?>/favicon.ico" type="image/x-icon"> -->
     </head>
     <!-- dark, purple, indigo -->
-    <body class="">
+    <body class=" <?php if($_SESSION['language'] == 'ar') echo 'ltr'; ?>">

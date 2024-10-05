@@ -3,7 +3,7 @@
 		let language = $(e.currentTarget).data('language');
 		let lang = language == 'en' ? 'ar' : 'en';
 		console.log(language)
-		$.post("./incs/utils.php?action=language", {lang: lang}, function(data) {
+		$.post(`${baseURI}/incs/utils.php?action=language`, {lang: lang}, function(data) {
 			console.log(data)
 			if(data == 'changed') {
 				location.reload()
@@ -89,35 +89,29 @@ function saveEmployee(form) {
 	let userActions 	= $(form).find('#userActions').val();
 	let userPrivileges 	= $(form).find('#userPrivileges').val();
 
-	if(!fullName) {
-		showError('Name is required.', 'fullName');
-		return false;
+	if (!fullName) {
+	    showError(lang.name_required, 'fullName');
+	    return false;
 	} 
-	if(!phone) {
-		showError('Phone number is required.', 'phone');
-		return false;
+	if (!phone) {
+	    showError(lang.phone_required, 'phone');
+	    return false;
 	} 
-	if(!isValidPhone(phone)) {
-		showError('invalid Phone number.', 'phone');
-		return false;
+	if (!isValidPhone(phone)) {
+	    showError(lang.invalid_phone, 'phone');
+	    return false;
 	}
-	if(!username) {
-		showError('Username is required.', 'username');
-		return false;
+	if (!username) {
+	    showError(lang.username_required, 'username');
+	    return false;
 	}
-	if(!password) {
-		showError('Password is required.', 'password');
-		return false;
+	if (!password) {
+	    showError(lang.password_required, 'password');
+	    return false;
 	} 
-
-	/*if(userActions.length < 1) {
-		swal(lang.error_title, 'User must read data.', 'error');
-		return false;
-	}*/
-
-	if(userPrivileges.length < 1) {
-		swal(lang.error_title, 'User must have at least one privilege.', 'error');
-		return false;
+	if (userPrivileges.length < 1) {
+	    swal(lang.error_title, lang.privilege_required, 'error');
+	    return false;
 	}
 
 	let formData = {
@@ -135,7 +129,7 @@ function saveEmployee(form) {
 		console.log(data)
 		let res = JSON.parse(data);
 		if(res.error) {
-			swal('Sorry', res.msg, 'error');
+			swal(lang.sorry, res.msg, 'error');
 			return false;
 		} else {
 			swal({
@@ -168,8 +162,35 @@ function loadEmployees() {
 			// 	console.log(data)
 			// }
 		}, 
+		"drawCallback": function(settings) {
+	        var api = this.api();
+	        var emptyRow = $(api.table().body()).find('.dataTables_empty');
+	        if (emptyRow.length > 0) {
+	            emptyRow.html(lang.no_books_found); // Use the language object
+	        }
+
+	        var label = $('#allUsers_filter label');
+	        label.contents().filter(function() {
+	            return this.nodeType === Node.TEXT_NODE;
+	        }).replaceWith(lang.search); // Use the language object
+
+	        var label = $('#allUsers_length label');
+	        var children = label.contents();
+	        children.each(function() {
+	            if (this.nodeType === Node.TEXT_NODE) {
+	                if ($(this).text().trim() === 'Show') {
+	                    $(this).replaceWith(lang.show); // Use the language object
+	                } else if ($(this).text().trim() === 'entries') {
+	                    $(this).replaceWith(lang.entries); // Use the language object
+	                }
+	            }
+	        });
+
+	        $('#allUsers_previous a').text(lang.previous); // Use the language object
+	        $('#allUsers_next a').text(lang.next); // Use the language object
+	    },
 		columns: [
-			{title: "Full name", data: null, render: function(data, type, row) {
+			{title: lang.full_name, data: null, render: function(data, type, row) {
 	            return `<div class="flex center-items">
 	            		<span class="bi bi-pencil mr-r-10 cursor hover"
 	            		data-user_id="${row.user_id}"
@@ -191,23 +212,23 @@ function loadEmployees() {
 		            </div>`;
 	        }},
 
-	        {title: "Phone number", data: null, render: function(data, type, row) {
+	        {title: lang.phone_number, data: null, render: function(data, type, row) {
 	            return `<div>${row.phone}</div>`;
 	        }},
 
-	        {title: "Email", data: null, render: function(data, type, row) {
+	        {title: lang.email, data: null, render: function(data, type, row) {
 	            return `<div>${row.email}</div>`;
 	        }},
 
-	        {title: "Username", data: null, render: function(data, type, row) {
+	        {title: lang.username, data: null, render: function(data, type, row) {
 	            return `<div>${row.username}</div>`;
 	        }},
 
-	        {title: "Status", data: null, render: function(data, type, row) {
+	        {title: lang.status, data: null, render: function(data, type, row) {
 	            return `<div class="${row.status}">${row.status}</div>`;
 	        }},
 
-	        {title: "Role", data: null, render: function(data, type, row) {
+	        {title: lang.role, data: null, render: function(data, type, row) {
 	            return `<div>${row.role}</div>`;
 	        }},
 		]
@@ -265,31 +286,27 @@ function editEmployee(form) {
 
 	let userActions 	= $(form).find('#userActions4Edit').val();
 	let userPrivileges 	= $(form).find('#userPrivileges4Edit').val();
-
-
-	if(!fullName) {
-		showError('Name is required.', 'fullNameEdit');
-		return false;
+	
+	
+	if (!fullName) {
+	    showError(lang.name_required, 'fullNameEdit');
+	    return false;
 	} 
-	if(!phone) {
-		showError('Phone number is required.', 'phoneEdit');
-		return false;
+	if (!phone) {
+	    showError(lang.phone_required, 'phoneEdit');
+	    return false;
 	} 
-	if(!isValidPhone(phone)) {
-		showError('invalid Phone number.', 'phoneEdit');
-		return false;
+	if (!isValidPhone(phone)) {
+	    showError(lang.invalid_phone, 'phoneEdit');
+	    return false;
+	}
+	
+	if (userPrivileges.length < 1) {
+	    swal(lang.error_title, lang.privilege_required, 'error');
+	    return false;
 	}
 
-	/*if(userActions.length < 1) {
-		swal(lang.error_title, 'User must read data.', 'error');
-		return false;
-	}*/
-
-	if(userPrivileges.length < 1) {
-		swal(lang.error_title, 'User must have at least one privilege.', 'error');
-		return false;
-	}
-
+	
 
 	let formData = {
 		fullName,
@@ -306,7 +323,7 @@ function editEmployee(form) {
 		console.log(data)
 		let res = JSON.parse(data);
 		if(res.error) {
-			swal('Sorry', res.msg, 'error');
+			swal(lang.sorry, res.msg, 'error');
 			return false;
 		} else {
 			swal({
@@ -330,11 +347,11 @@ function loginUser(form) {
 	let password = $(form).find('#password').val();
 
 	if(!username) {
-		showError('Username is required.', 'username');
+		showError(lang.username_required, 'username');
 		return false;
 	}
 	if(!password) {
-		showError('Password is required.', 'password');
+		showError(lang.password_required, 'password');
 		return false;
 	} 
 
@@ -371,7 +388,7 @@ function loginUser(form) {
                 location.href = './';
             })
 		} else {
-			swal('Sorry', res.msg, 'error');
+			swal(lang.sorry, res.msg, 'error');
 		}
 	});
 
@@ -559,10 +576,10 @@ function submitBook(form) {
 	    return false;
 	}
 
-	if (!isbn) {
+	/*if (!isbn) {
 	    showError(lang.required_isbn, 'isbn');
 	    return false;
-	}
+	}*/
 
 	if (!authorName) {
 	    showError(lang.required_author_name, 'authorName');
@@ -780,10 +797,10 @@ function editBook(form) {
 	    return false;
 	}
 
-	if (!isbn) {
+	/*if (!isbn) {
 	    showError(lang.required_isbn, 'isbn4Edit');
 	    return false;
-	}
+	}*/
 
 	if (!authorName) {
 	    showError(lang.required_author_name, 'authorName4Edit');
@@ -944,6 +961,57 @@ function deleteCoverFromBook(book_id) {
 
 	return false;
 }
+function submitCSV(form) {
+    $(form).find('button span.loader').removeClass('d-none');
+    $(form).find('button span.text').text('Please wait...');
+
+    let csvFile = $(form).find('#csvFile')[0].files[0];
+
+    if (!csvFile) {
+        alert('Please select a CSV file.');
+        return false;
+    }
+
+    let formdata = new FormData();
+    formdata.append("file", csvFile);
+
+    $.ajax({
+        url: "./incs/main.php?action=save&save=upload_csv",
+        type: "POST",
+        data: formdata,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            $(form).find('button span.loader').addClass('d-none');
+            $(form).find('button span.text').text('Upload');
+            console.log(response)
+
+            let res = JSON.parse(response);
+            if (!res.error) {
+                swal({
+		            title: lang.success,
+		            text: res.msg,
+		            icon: "success",
+		            buttons: false,
+		            timer: 2000,
+		        }).then(() => {
+		            location.reload();
+		        });
+            } else {
+                swal(lang.error_title, res.msg, 'error');
+				return false;
+            }
+        },
+        error: function() {
+            $(form).find('button span.loader').addClass('d-none');
+            $(form).find('button span.text').text('Upload');
+            alert('An error occurred while uploading the file.');
+        }
+    });
+
+    return false;
+}
+
 
 // Customers
 function addCustomer(form) {

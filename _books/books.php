@@ -3,7 +3,11 @@
     <p class="data-table-heading center-items flex space-bw mr-b-20 mr-t-10 mfs-8 bold">
         <span><?= $lang['all_books']; ?></span>
         <?php if($_SESSION['create'] == 'on') { ?>
-            <button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary"><?= $lang['add_book']; ?></button>
+            <span>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#addBook" class="mbtn cursor primary"><?= $lang['add_book']; ?></button>
+
+                <button type="button" data-bs-toggle="modal" data-bs-target="#uploadCSVModal" class="mbtn cursor primary"><?= $lang['upload_book']; ?></button>
+            </span>
         <?php } ?>
     </p>
     <div class="row justify-end">

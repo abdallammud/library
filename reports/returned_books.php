@@ -2,105 +2,135 @@
 $startDate = $_GET['startDate'];
 $endDate = $_GET['endDate'];
 
-// Create instance of FPDF
-$pdf = new FPDF('L', 'mm', 'A4'); // 'L' for landscape orientation
+// Extend the TCPDF class to create a custom footer
+class MYPDF extends TCPDF {
+    // Page footer
+    public function Footer() {
+        // Set position to 15 mm from bottom
+        $this->SetY(-15);
+        // Set font
+        $this->SetFont('helvetica', 'I', 8);
+        // Page number
+        $this->Cell(0, 10, 'Page ' . $this->getAliasNumPage() . '/' . $this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
+    }
+}
+
+// Create new PDF document
+$pdf = new MYPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+// Set document information
+$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetAuthor('Author Name');
+$pdf->SetTitle('Returned Books Report');
+$pdf->SetSubject('Returned Books Report');
+
+// Disable default header and footer
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
+
+$pdf->SetMargins(10, 10, 10); // left, top, right
+$pdf->SetHeaderMargin(5);
+$pdf->SetFooterMargin(20);
+
+$pdf->SetAutoPageBreak(TRUE, 15);
 
 // Add a page
 $pdf->AddPage();
 
 // Set font
-$pdf->SetFont('Arial', '', 10);
+$pdf->SetFont('aefurat', '', 12);
 
 // Add Logo
 $pdf->Image('./assets/images/logo.png', 125, 5, 50); // Adjust size as needed
 
-// Set header
+// Set header rectangle
 $pdf->SetFillColor(163, 185, 67);
 $pdf->SetDrawColor(163, 185, 67);
 $pdf->Rect(15, 40, 270, 0.2); // Adjusted position and width for landscape
 
-$pdf->SetFont('Arial', 'B', 13);
+$pdf->SetFont('aefurat', 'B', 13);
 $pdf->SetXY(15, 45);
-$pdf->Cell(0, 10, "Returned Books Report", 0, 1, 'C');
+$pdf->Cell(0, 10, $lang['pdf_returned_books_report'], 0, 1, 'C');
 
-$pdf->SetFont('Arial', '', 10);
+$pdf->SetFont('aefurat', '', 10);
 $pdf->SetXY(15, 50);
-$pdf->Cell(0, 10, "Between: " . formatDateRange($startDate, $endDate), 0, 1, 'C');
+$pdf->Cell(0, 10, $lang['pdf_between'] . formatDateRange($startDate, $endDate), 0, 1, 'C');
 
-$pdf->SetFont('Arial', '', 10);
+$pdf->SetFont('aefurat', '', 10);
 $pdf->SetXY(15, 55);
-$pdf->Cell(0, 10, "Print Date: " . date('F d, Y h:i:s A'), 0, 1, 'C');
+$pdf->Cell(0, 10, $lang['pdf_print_date'] . date('F d, Y h:i:s A'), 0, 1, 'C');
 
 $y = 65;
 
 // Table Header
-$pdf->SetFont('Arial', 'B', 10);
+$pdf->SetFont('aefurat', 'B', 10);
 $pdf->SetXY(15, $y);
-$pdf->Cell(15, 7, "No.", 1, 0, 'L', true);
-$pdf->Cell(80, 7, "Customer", 1, 0, 'L', true);
-$pdf->Cell(40, 7, "Borrow date", 1, 0, 'L', true);
-$pdf->Cell(30, 7, "Status", 1, 0, 'L', true);
-$pdf->Cell(45, 7, "Due date", 1, 0, 'L', true);
-$pdf->Cell(60, 7, "Return  Date", 1, 1, 'L', true);
+$pdf->Cell(15, 7, $lang['pdf_no'], 1, 0, 'L', true);
+$pdf->Cell(80, 7, $lang['pdf_customer'], 1, 0, 'L', true);
+$pdf->Cell(40, 7, $lang['pdf_borrow_date'], 1, 0, 'L', true);
+$pdf->Cell(30, 7, $lang['pdf_status'], 1, 0, 'L', true);
+$pdf->Cell(45, 7, $lang['pdf_due_date'], 1, 0, 'L', true);
+$pdf->Cell(60, 7, $lang['pdf_return_date'], 1, 1, 'L', true);
 
 $y += 7;
 
-$startDate 	= $startDate ." 00:00:00";
-$endDate 	= $endDate." 23:59:59";
+$startDate = $startDate . " 00:00:00";
+$endDate = $endDate . " 23:59:59";
 
-$get_transactions = "SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted')  AND BR.`return_date` BETWEEN '$startDate' AND '$endDate' AND BR.`status` = 'returned'";
+$get_transactions = "SELECT DISTINCT C.`name`, C.`phone_number`, B.`title`, B.`author`, B.`isbn`, BR.`id`, BR.`borrow_date`, BR.`status`, BR.`due_date`, BR.`return_date`, BR.`added_date` FROM `borrowing` BR INNER JOIN `books` B ON B.`isbn` = BR.`book_isbn` INNER JOIN `customers` C ON BR.`customer_id` = C.`id` WHERE B.`status` NOT IN ('deleted') AND BR.`return_date` BETWEEN '$startDate' AND '$endDate' AND BR.`status` = 'returned'";
 $transactions = $GLOBALS['conn']->query($get_transactions);
 $num = 1;
+
 if ($transactions->num_rows > 0) {
     while ($row = $transactions->fetch_assoc()) {
-        $id 		= $row['id'];
-		$title 		= $row['title'];
-		$isbn 		= $row['isbn'];
-		$author 	= $row['author'];
-		$customer 		= $row['name'];
-		$phone_number 	= $row['phone_number'];
-		$borrow_date 	= new dateTime($row['borrow_date']);
-		$due_date 		= new dateTime($row['due_date']);
-		$status 		= $row['status'];
-		$added_date 	= new dateTime($row['added_date']);
-		$return_date 	= new dateTime($row['return_date']);
-		$return_date1 	= $row['return_date'];
+        $id = $row['id'];
+        $title = $row['title'];
+        $isbn = $row['isbn'];
+        $author = $row['author'];
+        $customer = $row['name'];
+        $phone_number = $row['phone_number'];
+        $borrow_date = new DateTime($row['borrow_date']);
+        $due_date = new DateTime($row['due_date']);
+        $status = $row['status'];
+        $added_date = new DateTime($row['added_date']);
+        $return_date = new DateTime($row['return_date']);
+        $return_date1 = $row['return_date'];
 
-		$statusTxt = ucwords($status);
+        $statusTxt = ucwords($status);
 
-		$added_date = $added_date->format('F d, Y');
-		$borrow_date = $borrow_date->format('F d, Y');
-		$due_date = $due_date->format('F d, Y');
-		$return_date = $return_date->format('F d, Y');
+        $added_date = $added_date->format('F d, Y');
+        $borrow_date = $borrow_date->format('F d, Y');
+        $due_date = $due_date->format('F d, Y');
+        $return_date = $return_date->format('F d, Y');
 
-		if($return_date1 == '0000-00-00 00:00:00') {
-			$return_date = '';
-		}
+        if ($return_date1 == '0000-00-00 00:00:00') {
+            $return_date = '';
+        }
 
-
-        if ($y + 7 > 180) { // 290mm is used to account for margins
+        // Check if we need to add a new page
+        if ($y + 7 > 180) { // Adjust this value based on your layout
             $pdf->AddPage();
-            $pdf->SetFont('Arial', '', 10);
+            $pdf->SetFont('aefurat', '', 10);
             $y = 10; // Reset Y position after adding a new page
 
             // Re-add table header on the new page
-            $pdf->SetFont('Arial', 'B', 10);
-           	$pdf->SetXY(15, $y);
-           	$pdf->Cell(15, 7, "No.", 1, 0, 'L', true);
-			$pdf->Cell(80, 7, "Customer", 1, 0, 'L', true);
-			$pdf->Cell(40, 7, "Borrow date", 1, 0, 'L', true);
-			$pdf->Cell(30, 7, "Status", 1, 0, 'L', true);
-			$pdf->Cell(45, 7, "Due date", 1, 0, 'L', true);
-			$pdf->Cell(60, 7, "Return  Date", 1, 1, 'L', true);
+            $pdf->SetFont('aefurat', 'B', 10);
+            $pdf->SetXY(15, $y);
+            $pdf->Cell(15, 7, $lang['pdf_no'], 1, 0, 'L', true);
+            $pdf->Cell(80, 7, $lang['pdf_customer'], 1, 0, 'L', true);
+            $pdf->Cell(40, 7, $lang['pdf_borrow_date'], 1, 0, 'L', true);
+            $pdf->Cell(30, 7, $lang['pdf_status'], 1, 0, 'L', true);
+            $pdf->Cell(45, 7, $lang['pdf_due_date'], 1, 0, 'L', true);
+            $pdf->Cell(60, 7, $lang['pdf_return_date'], 1, 1, 'L', true);
 
             $y += 7;
         }
 
         // Add row
-        $pdf->SetFont('Arial', '', 10);
+        $pdf->SetFont('aefurat', '', 10);
         $pdf->SetXY(15, $y);
         $pdf->Cell(15, 7, $num, 1, 0, 'L');
-        $pdf->Cell(80, 7, $customer .", " . $phone_number, 1, 0, 'L');
+        $pdf->Cell(80, 7, $customer . ", " . $phone_number, 1, 0, 'L');
         $pdf->Cell(40, 7, $borrow_date, 1, 0, 'L');
         $pdf->Cell(30, 7, $statusTxt, 1, 0, 'L');
         $pdf->Cell(45, 7, $due_date, 1, 0, 'L');
@@ -114,5 +144,5 @@ if ($transactions->num_rows > 0) {
 }
 
 // Output the PDF
-$pdf->Output();
+$pdf->Output($lang['pdf_returned_books_report'] . ".pdf", 'I');
 ?>
