@@ -19,7 +19,7 @@
                         <div class="col col-lg-6">
                             <div class="form-group">
                                 <label class="label required" for="isbn"><?= $lang['isbn']; ?> <span class="form-error"><?= $lang['this_is_required']; ?></span></label>
-                                <input type="text" placeholder="<?= $lang['isbn']; ?> - <?= $lang['this_is_required']; ?>" class="form-control" id="isbn">
+                                <input type="text" placeholder="<?= $lang['isbn_placeholder']; ?>" class="form-control" id="isbn">
                             </div>
                         </div>
                         <div class="col col-lg-6">
@@ -71,18 +71,18 @@
                                 <input type="number" placeholder="1" class="form-control" id="number_of_copies">
                             </div>
                         </div>
-                        <div class="col col-lg-3">
+                        <div class="col col-lg-2">
                             <div class="form-group">
                                 <label class="label required" for="parts"><?= $lang['parts']; ?> <span class="form-error"><?= $lang['this_is_required']; ?></span></label>
                                 <input type="number" placeholder="1" class="form-control" id="parts">
                             </div>
                         </div>
-                        <div class="col col-lg-3">
+                        <!-- <div class="col col-lg-3">
                             <div class="form-group">
                                 <label class="label required" for="part_num"><?= $lang['part']; ?> <span class="form-error"><?= $lang['this_is_required']; ?></span></label>
                                 <input type="number" placeholder="1" class="form-control" id="part_num">
                             </div>
-                        </div>
+                        </div> -->
                         <div class="col col-lg-4">
                             <div class="mb-3 form-group">
                                 <label for="coverImage" class="form-label label"><?= $lang['cover_image']; ?> <span class="form-error"><?= $lang['this_is_required']; ?></span></label>

@@ -311,7 +311,9 @@ if(isset($_GET['action'])) {
 			               	$row++;
         					if($row == 1) continue;
 
-			                list($bookTitle, $isbn, $authorName, $publisher, $published_year, $slcBookCategory, $copies, $parts, $part) = $line;
+			                list($bookTitle, $isbn, $authorName, $publisher, $published_year, $slcBookCategory, $copies, $parts) = $line;
+
+			               	$part  = 1;
 
 			                // Check if the book already exists, etc.
 			               

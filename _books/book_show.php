@@ -42,10 +42,10 @@ while($row = $books->fetch_assoc()) {
 					<div class="col-md-3 bold"><?=$lang['parts'];?></div>
 					<div class="col-md-9"><?=$result['parts'];?></div>
 				</div>
-				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
+				<!-- <div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
 					<div class="col-md-3 bold"><?=$lang['part'];?></div>
 					<div class="col-md-9"><?=$result['part_num'];?></div>
-				</div>
+				</div> -->
 				<div class="row" style="border-bottom: 1px solid #ddd; padding:5px 0px;">
 					<div class="col-md-3 bold"><?=$lang['number_of_copies'];?></div>
 					<div class="col-md-9"><?=$result['number_of_copies'];?></div>

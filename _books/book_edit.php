@@ -76,21 +76,19 @@
                                 <input type="number" placeholder="1" class="form-control" id="number_of_copies4Edit">
                             </div>
                         </div>
-                        <div class="col col-lg-3">
+                        <div class="col col-lg-2">
                             <div class="form-group">
                                 <label class="label required" for="parts4Edit"><?= $lang['parts'] ?><span class="form-error"><?= $lang['required'] ?></span></label>
                                 <input type="number" placeholder="1" class="form-control" id="parts4Edit">
                             </div>
                         </div>
-                        <div class="col col-lg-3">
+                        <!-- <div class="col col-lg-3">
                             <div class="form-group">
                                 <label class="label required" for="part_num4Edit"><?= $lang['part'] ?><span class="form-error"><?= $lang['required'] ?></span></label>
                                 <input type="number" placeholder="1" class="form-control" id="part_num4Edit">
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col col-lg-6">
+                        </div> -->
+                        <div class="col col-lg-4">
                             <div class="form-group">
                                 <label class="label" for="slcBookStatus4Edit"><?= $lang['status'] ?><span class="form-error"><?= $lang['required'] ?></span></label>
                                 <select class="form-control" id="slcBookStatus4Edit">
@@ -100,6 +98,9 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
+                        
                     </div>
                     <div class="row">
                         <div class="col col-lg-8"></div>

@@ -561,7 +561,6 @@ function submitBook(form) {
 
 	let number_of_copies = $(form).find('#number_of_copies').val();
 	let parts = $(form).find('#parts').val();
-	let part_num = $(form).find('#part_num').val();
 
 	let coverImage = $(form).find('#coverImage').val();
 	let ext = coverImage.split('.').pop();
@@ -569,7 +568,8 @@ function submitBook(form) {
 
 	if (!number_of_copies) number_of_copies = 1;
 	if (!parts) parts = 1;
-	if (!part_num) part_num = 1;
+	
+	let part_num = 1;
 
 	if (!bookTitle) {
 	    showError(lang.required_book_title, 'bookTitle');
@@ -789,7 +789,7 @@ function editBook(form) {
 	let slcBookCategory = $(form).find('#slcBookCategory4Edit').val();
 	let number_of_copies = $(form).find('#number_of_copies4Edit').val();
 	let parts = $(form).find('#parts4Edit').val();
-	let part_num = $(form).find('#part_num4Edit').val();
+	let part_num = 1; //$(form).find('#part_num4Edit').val();
 	let slcBookStatus = $(form).find('#slcBookStatus4Edit').val();
 
 	if (!bookTitle) {
